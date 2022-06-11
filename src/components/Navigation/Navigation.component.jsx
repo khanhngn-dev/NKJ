@@ -19,6 +19,7 @@ const Navigation = () => {
 					underline='none'
 					sx={{
 						fontWeight: 700,
+						cursor: 'pointer',
 					}}
 					onClick={() => navigate('/')}
 				>
@@ -30,6 +31,7 @@ const Navigation = () => {
 					underline='hover'
 					sx={{
 						fontWeight: 700,
+						cursor: 'pointer',
 					}}
 					onClick={() => navigate('/learning')}
 				>
@@ -41,6 +43,7 @@ const Navigation = () => {
 					underline='hover'
 					sx={{
 						fontWeight: 700,
+						cursor: 'pointer',
 					}}
 					onClick={() => navigate('/create')}
 				>
@@ -52,6 +55,7 @@ const Navigation = () => {
 					underline='hover'
 					sx={{
 						fontWeight: 700,
+						cursor: 'pointer',
 					}}
 					onClick={() => navigate('/exercise')}
 				>
