@@ -11,6 +11,7 @@ import {
 	signInUsingGithubPopup,
 } from '../../utils/firebase/firebase.utils';
 import Toastr from '../../components/Toastr/Toastr.component';
+import { SpinnerContainer } from '../../components/Spinner/Spinner.styles';
 
 const defaultFormField = {
 	email: '',
@@ -18,13 +19,11 @@ const defaultFormField = {
 	confirmPassword: '',
 };
 
-const defaultErrorEmail = {
+const defaultError = {
 	message: '',
 };
-const defaultErrorPwd = {
-	message: '',
-};
-const defaultNoti = {
+
+const defaultNotification = {
 	message: '',
 	state: '',
 };
@@ -32,10 +31,13 @@ const defaultNoti = {
 const SignUpPage = () => {
 	const navigate = useNavigate();
 	const [formField, setFormField] = useState(defaultFormField);
-	const [emailError, setEmailError] = useState(defaultErrorEmail);
-	const [pwdError, setPwdError] = useState(defaultErrorPwd);
-	const [signUpNoti, setSignUpNoti] = useState(defaultNoti);
+	const [emailError, setEmailError] = useState(false);
+	const [pwdError, setPwdError] = useState(defaultError);
+	const [notification, setNotification] = useState(defaultNotification);
+	const [loading, setLoading] = useState(false);
 	const { email, password, confirmPassword } = formField;
+
+	const removeNotification = () => setNotification(defaultNotification);
 
 	const onChangeHandler = (e) => {
 		const { name, value } = e.target;
@@ -44,30 +46,40 @@ const SignUpPage = () => {
 
 	const resetFormHandler = () => {
 		setFormField(defaultFormField);
+		setEmailError(false);
+		setPwdError(defaultError);
 	};
 
 	const onSubmitHandler = async (e) => {
 		e.preventDefault();
-		if (emailError.message || pwdError.message) {
+		if (emailError || pwdError.message) {
 			return;
 		}
 		try {
+			setLoading(true);
 			await createUserUsingEmailPassword(email, password);
-			setSignUpNoti({ message: 'Sign up successfully', state: 'success' });
+			setNotification({ message: 'Sign up successfully', state: 'success' });
+			setLoading(false);
 		} catch (e) {
-			setEmailError({
+			setLoading(false);
+			setNotification({
 				message: e?.code?.split('/')[1].replace(/-/g, ' ').toUpperCase(),
+				state: 'error',
 			});
+			setEmailError(true);
 		}
-		// resetFormHandler();
 	};
 
 	const handlePopupSignUp = async (popUp) => {
 		try {
+			setLoading(true);
 			await popUp();
+			setNotification({ message: 'Sign up successfully', state: 'success' });
+			setLoading(false);
 		} catch (e) {
+			setLoading(false);
 			if (e.code === 'auth/account-exists-with-different-credential') {
-				setSignUpNoti({
+				setNotification({
 					message: 'Account already exist with different credentials',
 					state: 'error',
 				});
@@ -80,7 +92,7 @@ const SignUpPage = () => {
 			setPwdError({ message: 'Password needs to be at least 6 characters' });
 		} else if (password !== confirmPassword) {
 			setPwdError({
-				message: 'Password does not match',
+				message: 'Confirm password does not match',
 			});
 		} else {
 			setPwdError({ message: '' });
@@ -101,7 +113,7 @@ const SignUpPage = () => {
 				<Stack direction='column' spacing={4} justifyContent='center' sx={{ width: '50vw' }}>
 					<Stack direction='column' spacing={1}>
 						<Typography variant='h4' color='primary'>
-							Sign up
+							Sign Up
 						</Typography>
 						<Typography variant='h5'>
 							Already have an account?{' '}
@@ -120,6 +132,7 @@ const SignUpPage = () => {
 					<form onSubmit={onSubmitHandler}>
 						<Stack direction='column' spacing={4} alignItems='center' justifyContent='center'>
 							<TextField
+								disabled={loading}
 								label='Username'
 								variant='outlined'
 								name='email'
@@ -127,14 +140,14 @@ const SignUpPage = () => {
 								required
 								type='email'
 								onChange={(e) => {
-									setEmailError({ message: '' });
+									setEmailError(false);
 									onChangeHandler(e);
 								}}
 								fullWidth
-								helperText={emailError.message}
-								error={emailError.message.length !== 0}
+								error={emailError}
 							></TextField>
 							<TextField
+								disabled={loading}
 								label='Password'
 								variant='outlined'
 								name='password'
@@ -145,9 +158,10 @@ const SignUpPage = () => {
 									onChangeHandler(e);
 								}}
 								fullWidth
-								error={pwdError.message}
+								error={pwdError.message.length !== 0}
 							></TextField>
 							<TextField
+								disabled={loading}
 								label='Confirm Password'
 								variant='outlined'
 								name='confirmPassword'
@@ -169,6 +183,7 @@ const SignUpPage = () => {
 							>
 								<Stack direction='row' spacing={2} sx={{ width: '100%', height: '50px' }}>
 									<Button
+										disabled={loading}
 										type='reset'
 										variant='outlined'
 										sx={{
@@ -180,6 +195,7 @@ const SignUpPage = () => {
 										Reset
 									</Button>
 									<Button
+										disabled={pwdError.message.length !== 0 || emailError || loading}
 										type='submit'
 										variant='contained'
 										sx={{
@@ -187,7 +203,16 @@ const SignUpPage = () => {
 											fontWeight: 700,
 										}}
 									>
-										Sign up
+										{loading ? (
+											<SpinnerContainer
+												style={{
+													width: '30px',
+													height: '30px',
+												}}
+											/>
+										) : (
+											'Sign up'
+										)}
 									</Button>
 								</Stack>
 								<Stack
@@ -198,6 +223,7 @@ const SignUpPage = () => {
 									justifyContent='center'
 								>
 									<Button
+										disabled={loading}
 										type='button'
 										color='primary'
 										variant='contained'
@@ -207,6 +233,7 @@ const SignUpPage = () => {
 										<GoogleIcon />
 									</Button>
 									<Button
+										disabled={loading}
 										type='button'
 										color='primary'
 										variant='contained'
@@ -216,6 +243,7 @@ const SignUpPage = () => {
 										<FacebookIcon />
 									</Button>
 									<Button
+										disabled={loading}
 										type='button'
 										color='primary'
 										variant='contained'
@@ -230,9 +258,9 @@ const SignUpPage = () => {
 					</form>
 				</Stack>
 			</div>
-			{signUpNoti.message && (
-				<Toastr severity={signUpNoti.state} timeToLive={5}>
-					{signUpNoti.message}
+			{notification.message && (
+				<Toastr severity={notification.state} timeToLive={5} removeHandler={removeNotification}>
+					{notification.message}
 				</Toastr>
 			)}
 		</>

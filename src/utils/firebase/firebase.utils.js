@@ -8,6 +8,7 @@ import {
 	FacebookAuthProvider,
 	GithubAuthProvider,
 	signInWithPopup,
+	signOut,
 } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 // TODO: Add SDKs for Firebase products that you want to use
@@ -26,7 +27,7 @@ const firebaseConfig = {
 // Initialize Firebase
 // eslint-disable-next-line
 const app = initializeApp(firebaseConfig);
-const auth = getAuth();
+export const auth = getAuth();
 // eslint-disable-next-line
 const firestore = getFirestore();
 const googleProvider = new GoogleAuthProvider();
@@ -61,4 +62,8 @@ export const signInUsingGithubPopup = async () => {
 	const result = await signInWithPopup(auth, githubProvider);
 	console.log(result.user);
 	return result.user;
+};
+
+export const signOutUser = async () => {
+	signOut(auth);
 };

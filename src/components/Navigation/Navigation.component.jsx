@@ -1,8 +1,11 @@
 import { Button, Stack, Link } from '@mui/material';
 import { useNavigate } from 'react-router';
+import { useSelector } from 'react-redux/es/exports';
+import { signOutUser } from '../../utils/firebase/firebase.utils';
 
 const Navigation = () => {
 	const navigate = useNavigate();
+	const currentUser = useSelector((state) => state.user.currentUser);
 
 	return (
 		<Stack
@@ -62,27 +65,42 @@ const Navigation = () => {
 					Exercise
 				</Link>
 			</Stack>
-			<Stack direction='row' spacing={2}>
+			{currentUser ? (
 				<Button
+					type='button'
 					variant='outlined'
-					color='primary'
 					sx={{
 						fontWeight: 700,
 					}}
-					onClick={() => navigate('/signin')}
+					onClick={signOutUser}
 				>
-					Sign in
+					Sign Out
 				</Button>
-				<Button
-					variant='contained'
-					sx={{
-						fontWeight: 700,
-					}}
-					onClick={() => navigate('/signup')}
-				>
-					Sign up
-				</Button>
-			</Stack>
+			) : (
+				<Stack direction='row' spacing={2}>
+					<Button
+						type='button'
+						variant='outlined'
+						color='primary'
+						sx={{
+							fontWeight: 700,
+						}}
+						onClick={() => navigate('/signin')}
+					>
+						Sign in
+					</Button>
+					<Button
+						type='button'
+						variant='contained'
+						sx={{
+							fontWeight: 700,
+						}}
+						onClick={() => navigate('/signup')}
+					>
+						Sign up
+					</Button>
+				</Stack>
+			)}
 		</Stack>
 	);
 };
