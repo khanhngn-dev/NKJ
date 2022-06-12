@@ -10,6 +10,7 @@ import AppRouter from './routers/AppRouter';
 import SignUpPage from './pages/SignUpPage/SignUpPage';
 import SignInPage from './pages/SignInPage/SignInPage';
 import Spinner from './components/Spinner/Spinner.component';
+import Error404Page from './pages/Error404Page/Error404Page';
 
 function App() {
 	const currentUser = useSelector((state) => state.user.currentUser);
@@ -32,7 +33,7 @@ function App() {
 						path='signin'
 						element={currentUser ? <Navigate to='/' replace /> : <SignInPage />}
 					></Route>
-					<Route path='*'></Route>
+					<Route path='*' element={<Error404Page />}></Route>
 				</Route>
 			</Routes>
 		</Suspense>
