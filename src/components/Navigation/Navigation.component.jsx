@@ -1,7 +1,11 @@
-import { Button, Stack, Link } from '@mui/material';
+import { Button, Stack, List, ListItem } from '@mui/material';
 import { useNavigate } from 'react-router';
 import { useSelector } from 'react-redux/es/exports';
 import { signOutUser } from '../../utils/firebase/firebase.utils';
+
+import { NavLink, ListButton } from './Navigation.styles';
+
+export const LEARNING_NAV_LINK = ['Alphabet', 'Grammar', 'Vocabulary'];
 
 const Navigation = () => {
 	const navigate = useNavigate();
@@ -15,55 +19,53 @@ const Navigation = () => {
 			alignItems='center'
 			sx={{ height: '60px', width: '100%', padding: '10px 20px' }}
 		>
-			<Stack direction='row' spacing={2} justifyContent='space-around' alignItems='center'>
-				<Link
+			<Stack direction='row' spacing={5} justifyContent='space-around' alignItems='center'>
+				<NavLink
 					variant='h5'
 					color='primary'
 					underline='none'
-					sx={{
-						fontWeight: 700,
-						cursor: 'pointer',
-					}}
+					component='div'
 					onClick={() => navigate('/')}
 				>
 					NKJ
-				</Link>
-				<Link
-					variant='body1'
-					color='primary'
-					underline='hover'
-					sx={{
-						fontWeight: 700,
-						cursor: 'pointer',
-					}}
-					onClick={() => navigate('/learning')}
-				>
+				</NavLink>
+				<NavLink variant='body1' color='primary' underline='hover' component='div'>
 					Learning
-				</Link>
-				<Link
+					<List
+						sx={{
+							position: 'absolute',
+							left: '-10px',
+							display: 'none',
+							zIndex: 1,
+							backgroundColor: 'white',
+							border: '1px solid var(--primary-color)',
+						}}
+					>
+						{LEARNING_NAV_LINK.map((link, i) => (
+							<ListItem key={i} disablePadding>
+								<ListButton onClick={() => navigate(`/${link.toLowerCase()}`)}>{link}</ListButton>
+							</ListItem>
+						))}
+					</List>
+				</NavLink>
+				<NavLink
 					variant='body1'
 					color='primary'
 					underline='hover'
-					sx={{
-						fontWeight: 700,
-						cursor: 'pointer',
-					}}
+					component='div'
 					onClick={() => navigate('/create')}
 				>
 					Create
-				</Link>
-				<Link
+				</NavLink>
+				<NavLink
 					variant='body1'
 					color='primary'
 					underline='hover'
-					sx={{
-						fontWeight: 700,
-						cursor: 'pointer',
-					}}
+					component='div'
 					onClick={() => navigate('/exercise')}
 				>
 					Exercise
-				</Link>
+				</NavLink>
 			</Stack>
 			{currentUser ? (
 				<Button

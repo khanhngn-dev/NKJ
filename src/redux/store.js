@@ -4,9 +4,7 @@ import userReducer from './user/user.slice';
 export const store = configureStore({
 	middleware: (getDefaultMiddleware) =>
 		getDefaultMiddleware({
-			serializableCheck: {
-				ignoredActions: ['user/updateCurrentUser'],
-			},
+			serializableCheck: false,
 		}),
 	reducer: {
 		user: userReducer,
