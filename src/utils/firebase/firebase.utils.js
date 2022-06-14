@@ -48,19 +48,16 @@ export const signInUsingEmailPassword = async (email, password) => {
 
 export const signInUsingGooglePopUp = async () => {
 	const result = await signInWithPopup(auth, googleProvider);
-	console.log(result.user);
 	return result.user;
 };
 
 export const signInUsingFacebookPopUp = async () => {
 	const result = await signInWithPopup(auth, facebookProvider);
-	console.log(result.user);
 	return result.user;
 };
 
 export const signInUsingGithubPopup = async () => {
 	const result = await signInWithPopup(auth, githubProvider);
-	console.log(result.user);
 	return result.user;
 };
 

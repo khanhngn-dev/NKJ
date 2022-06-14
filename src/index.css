@@ -1,7 +1,16 @@
+:root {
+	--primary-color: #c00734;
+	--secondary-color: #ffb8b1;
+}
+
 * {
 	margin: 0;
 	padding: 0;
 	border: 0;
 	box-sizing: border-box;
 	font-family: 'Nunito', sans-serif;
+}
+
+body {
+	overflow-x: hidden;
 }

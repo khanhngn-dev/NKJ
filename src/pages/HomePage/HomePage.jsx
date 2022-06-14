@@ -1,4 +1,4 @@
-import { Stack, Button } from '@mui/material';
+import { Stack } from '@mui/material';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 // import { ReactComponent as LandingPageSVG } from '../../assets/Landing.svg';
@@ -8,6 +8,8 @@ import {
 	LandingButton,
 	DecorBar,
 } from './HomePage.styles';
+
+import { LEARNING_NAV_LINK } from '../../components/Navigation/Navigation.component';
 
 const HomePage = () => {
 	const currentUser = useSelector((state) => state.user.currentUser);
@@ -28,21 +30,22 @@ const HomePage = () => {
 			>
 				{currentUser ? (
 					<>
-						<LandingButton variant='contained' onClick={() => navigate('/alphabet')}>
-							Alphabet
-						</LandingButton>
-						<LandingButton variant='contained' onClick={() => navigate('/grammar')}>
-							Grammar
-						</LandingButton>
-						<LandingButton variant='contained' onClick={() => navigate('/vocabulary')}>
-							Vocabulary
-						</LandingButton>
-						<LandingButton variant='contained' onClick={() => navigate('/exercise')}>
-							Exercise
-						</LandingButton>
+						{LEARNING_NAV_LINK.map((link, i) => (
+							<LandingButton
+								key={i}
+								variant='contained'
+								onClick={() => navigate(`/${link.toLowerCase()}`)}
+							>
+								{link}
+							</LandingButton>
+						))}
 					</>
 				) : (
-					<LandingButton variant='contained' sx={{ marginBottom: '80px' }}>
+					<LandingButton
+						variant='contained'
+						sx={{ marginBottom: '80px' }}
+						onClick={() => navigate('/signup')}
+					>
 						Get Started
 					</LandingButton>
 				)}
