@@ -103,8 +103,8 @@ const SignUpPage = () => {
 		<>
 			<div
 				style={{
+					paddingTop: '80px',
 					width: '100%',
-					height: 'calc(100vh - 120px)',
 					display: 'flex',
 					justifyContent: 'center',
 					alignItems: 'center',
