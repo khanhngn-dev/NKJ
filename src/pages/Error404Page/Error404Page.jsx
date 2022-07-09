@@ -12,7 +12,6 @@ const Error404Page = () => {
 			spacing={5}
 			style={{
 				width: '100%',
-				height: 'calc(100vh - 120px)',
 			}}
 		>
 			<Typography color='primary'>

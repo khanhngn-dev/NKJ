@@ -20,7 +20,7 @@ const HomePage = () => {
 			justifyContent='space-between'
 			spacing={2}
 			alignItems='center'
-			sx={{ maxWidth: '1024px', margin: 'auto', padding: '60px', height: 'calc(100vh - 120px)' }}
+			sx={{ maxWidth: '1024px', margin: 'auto', padding: '60px' }}
 		>
 			<Stack
 				direction='column'

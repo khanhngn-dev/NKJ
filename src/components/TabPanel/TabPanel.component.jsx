@@ -27,7 +27,7 @@ const TabPanel = ({ title, letters, loading }) => {
 						</Grid>
 					) : (
 						<Stack justifyContent='center' alignItems='center'>
-							<Typography variant='h5'>Failed to fetch {title} alphabet</Typography>
+							<Typography variant='h5'>{title} alphabet is not currently supported</Typography>
 							<Typography variant='h5'></Typography>
 						</Stack>
 					)}
