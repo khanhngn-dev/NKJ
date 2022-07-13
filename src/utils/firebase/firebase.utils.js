@@ -10,7 +10,15 @@ import {
 	signInWithPopup,
 	signOut,
 } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import {
+	getFirestore,
+	doc,
+	setDoc,
+	collection,
+	getDoc,
+	getDocs,
+	deleteDoc,
+} from 'firebase/firestore';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -28,7 +36,6 @@ const firebaseConfig = {
 // eslint-disable-next-line
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth();
-// eslint-disable-next-line
 const firestore = getFirestore();
 const googleProvider = new GoogleAuthProvider();
 const facebookProvider = new FacebookAuthProvider();
@@ -63,4 +70,31 @@ export const signInUsingGithubPopup = async () => {
 
 export const signOutUser = async () => {
 	signOut(auth);
+};
+
+export const addLearningSet = async (set, userID) => {
+	if (!set.id || !userID) return;
+	const setRef = doc(firestore, `user/${userID}/sets/${set.id}`);
+	await setDoc(setRef, set);
+};
+
+export const fetchLearningSet = async (setID, userID) => {
+	if (!setID || !userID) return;
+	const setRef = doc(firestore, `user/${userID}/sets/${setID}`);
+	const setSnapshot = await getDoc(setRef);
+	if (setSnapshot.exists()) return setSnapshot.data();
+	// throw new Error('Set does not exist');
+};
+
+export const fetchAllLearningSets = async (userID) => {
+	if (!userID) return;
+	const setsRef = collection(firestore, `user/${userID}/sets`);
+	const setsSnapshot = await getDocs(setsRef);
+	if (!setsSnapshot.empty) return setsSnapshot.docs.map((doc) => doc.data());
+};
+
+export const deleteLearningSet = async (setID, userID) => {
+	if (!setID || !userID) return;
+	const setRef = doc(firestore, `user/${userID}/sets/${setID}`);
+	await deleteDoc(setRef);
 };

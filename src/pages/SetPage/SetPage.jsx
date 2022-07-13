@@ -34,7 +34,7 @@ const sortByList = [
 	},
 ];
 
-const ProfilePage = () => {
+const SetPage = () => {
 	const dispatch = useDispatch();
 	const [sets, SetSets] = useState([]);
 	const [filteredSets, setFilteredSets] = useState(sets);
@@ -64,12 +64,6 @@ const ProfilePage = () => {
 		closeDeleteHandler();
 	};
 
-	const fetchSetsAsync = useCallback(async (userID) => {
-		const response = await fetchAllLearningSets(userID);
-		if (!response) return;
-		SetSets(response);
-	}, []);
-
 	const searchHandler = (e) => {
 		setSearchTerm(e.target.value);
 	};
@@ -77,6 +71,12 @@ const ProfilePage = () => {
 	const sortByHandler = (e) => {
 		setSortBy(e.target.value);
 	};
+
+	const fetchSetsAsync = useCallback(async (userID) => {
+		const response = await fetchAllLearningSets(userID);
+		if (!response) return;
+		SetSets(response);
+	}, []);
 
 	useEffect(() => {
 		fetchSetsAsync(currentUser?.uid);
@@ -97,84 +97,86 @@ const ProfilePage = () => {
 	}, [searchTerm, sets, sortBy]);
 
 	return (
-		<Stack
-			direction='column'
-			justifyContent='center'
-			alignItems='center'
-			sx={{ padding: '20px 40px' }}
-			spacing={4}
-		>
-			<Stack direction='row' justifyContent='center' spacing={4} sx={{ width: '100%' }}>
-				<TextField
-					label='Search Learning Sets'
-					value={searchTerm}
-					onChange={searchHandler}
-					InputProps={{
-						startAdornment: (
-							<InputAdornment position='start'>
-								<SearchIcon />
-							</InputAdornment>
-						),
-					}}
-				/>
-				<TextField
-					select
-					value={sortBy}
-					onChange={sortByHandler}
-					label='Sort by'
-					sx={{ width: '20ch' }}
-				>
-					{sortByList.map((item, index) => (
-						<MenuItem value={index} key={index}>
-							{item.text}
-						</MenuItem>
-					))}
-				</TextField>
-			</Stack>
-			<Box sx={{ width: '100%', maxWidth: '1200px', margin: 'auto' }}>
-				<Grid container direction='row' flexWrap='wrap' spacing={4}>
-					{filteredSets?.map((set) => (
-						<Grid item key={set.id} xs={6}>
-							<SetSummary key={set.id} set={set} deleteSetHandler={deleteSetHandler} />
-						</Grid>
-					))}
-				</Grid>
-			</Box>
-			<Modal open={Boolean(deleteID)} onClose={closeDeleteHandler}>
-				<CenterModal
-					style={{
-						display: 'flex',
-						flexFlow: 'column',
-						justifyContent: 'center',
-						alignItems: 'center',
-						gap: '20px',
-					}}
-				>
-					<Typography variant='h6' color='primary' textAlign='center'>
-						Confirm delete
-					</Typography>
-					<Typography variant='body1' color='primary' textAlign='center'>
-						THIS ACTION IS IRREVERSIBLE
-					</Typography>
-					<div
+		<>
+			<Stack
+				direction='column'
+				justifyContent='center'
+				alignItems='center'
+				sx={{ padding: '20px 40px', maxWidth: '1200px', margin: 'auto' }}
+				spacing={4}
+			>
+				<Stack direction='row' justifyContent='center' spacing={4} sx={{ width: '100%' }}>
+					<TextField
+						label='Search Learning Sets'
+						value={searchTerm}
+						onChange={searchHandler}
+						InputProps={{
+							startAdornment: (
+								<InputAdornment position='start'>
+									<SearchIcon />
+								</InputAdornment>
+							),
+						}}
+					/>
+					<TextField
+						select
+						value={sortBy}
+						onChange={sortByHandler}
+						label='Sort by'
+						sx={{ width: '20ch' }}
+					>
+						{sortByList.map((item, index) => (
+							<MenuItem value={index} key={index}>
+								{item.text}
+							</MenuItem>
+						))}
+					</TextField>
+				</Stack>
+				<Box sx={{ width: '100%', maxWidth: '1200px', margin: 'auto' }}>
+					<Grid container direction='row' flexWrap='wrap' spacing={4}>
+						{filteredSets?.map((set) => (
+							<Grid item key={set.id} xs={6}>
+								<SetSummary key={set.id} set={set} deleteSetHandler={deleteSetHandler} />
+							</Grid>
+						))}
+					</Grid>
+				</Box>
+				<Modal open={Boolean(deleteID)} onClose={closeDeleteHandler}>
+					<CenterModal
 						style={{
 							display: 'flex',
+							flexFlow: 'column',
 							justifyContent: 'center',
 							alignItems: 'center',
 							gap: '20px',
 						}}
 					>
-						<Button variant='contained' onClick={() => confirmDeleteHandler(deleteID)}>
-							Delete
-						</Button>
-						<Button variant='outlined' onClick={closeDeleteHandler}>
-							Cancel
-						</Button>
-					</div>
-				</CenterModal>
-			</Modal>
-		</Stack>
+						<Typography variant='h6' color='primary' textAlign='center'>
+							Confirm delete
+						</Typography>
+						<Typography variant='body1' color='primary' textAlign='center'>
+							THIS ACTION IS IRREVERSIBLE
+						</Typography>
+						<div
+							style={{
+								display: 'flex',
+								justifyContent: 'center',
+								alignItems: 'center',
+								gap: '20px',
+							}}
+						>
+							<Button variant='contained' onClick={() => confirmDeleteHandler(deleteID)}>
+								Delete
+							</Button>
+							<Button variant='outlined' onClick={closeDeleteHandler}>
+								Cancel
+							</Button>
+						</div>
+					</CenterModal>
+				</Modal>
+			</Stack>
+		</>
 	);
 };
 
-export default ProfilePage;
+export default SetPage;

@@ -1,25 +1,23 @@
-import { useState } from 'react';
-import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router';
+import { useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate, useParams } from 'react-router';
 
-import { Stack, TextField, Button, Modal, Typography, Link, Switch } from '@mui/material';
+import { Stack, TextField, Button, Modal } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ClearIcon from '@mui/icons-material/Clear';
-import { styled } from '@mui/material/styles';
 
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import Toastr from '../../components/Toastr/Toastr.component';
 import Set from '../../components/Set/Set.component';
+import CenterModal from '../../components/CenterModal/CenterModal.component';
 import { SpinnerContainer } from '../../components/Spinner/Spinner.styles';
+import { MaterialUISwitch } from './CreatePage.styles';
 
 import { v1 as uuidv1 } from 'uuid';
 
-const defaultNotification = {
-	message: '',
-	state: '',
-};
+import { addLearningSet, fetchLearningSet } from '../../utils/firebase/firebase.utils';
+import { setCurrentNotification } from '../../redux/notification/notification.slice';
 
 const reorder = (list, startIndex, endIndex) => {
 	const result = Array.from(list);
@@ -28,53 +26,6 @@ const reorder = (list, startIndex, endIndex) => {
 
 	return result;
 };
-
-const MaterialUISwitch = styled(Switch)(() => ({
-	width: 62,
-	height: 34,
-	padding: 7,
-	'& .MuiSwitch-switchBase': {
-		margin: 1,
-		padding: 0,
-		transform: 'translateX(6px)',
-		'&.Mui-checked': {
-			color: '#fff',
-			transform: 'translateX(22px)',
-			'& .MuiSwitch-thumb:before': {
-				backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 25 25"><path fill="${encodeURIComponent(
-					'#fff'
-				)}" d="M 12 2 C 6.48 2 2 6.48 2 12 s 4.48 10 10 10 s 10 -4.48 10 -10 S 17.52 2 12 2 Z m -1 17.93 c -3.95 -0.49 -7 -3.85 -7 -7.93 c 0 -0.62 0.08 -1.21 0.21 -1.79 L 9 15 v 1 c 0 1.1 0.9 2 2 2 v 1.93 Z m 6.9 -2.54 c -0.26 -0.81 -1 -1.39 -1.9 -1.39 h -1 v -3 c 0 -0.55 -0.45 -1 -1 -1 H 8 v -2 h 2 c 0.55 0 1 -0.45 1 -1 V 7 h 2 c 1.1 0 2 -0.9 2 -2 v -0.41 c 2.93 1.19 5 4.06 5 7.41 c 0 2.08 -0.8 3.97 -2.1 5.39 Z"/></svg>')`,
-			},
-			'& + .MuiSwitch-track': {
-				opacity: 1,
-				backgroundColor: '#8796A5',
-			},
-		},
-	},
-	'& .MuiSwitch-thumb': {
-		backgroundColor: '#C00734',
-		width: 32,
-		height: 32,
-		'&:before': {
-			content: "''",
-			position: 'absolute',
-			width: '100%',
-			height: '100%',
-			left: 0,
-			top: 0,
-			backgroundRepeat: 'no-repeat',
-			backgroundPosition: 'center',
-			backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 25 25"><path fill="${encodeURIComponent(
-				'#fff'
-			)}" d="M 18 8 h -1 V 6 c 0 -2.76 -2.24 -5 -5 -5 S 7 3.24 7 6 v 2 H 6 c -1.1 0 -2 0.9 -2 2 v 10 c 0 1.1 0.9 2 2 2 h 12 c 1.1 0 2 -0.9 2 -2 V 10 c 0 -1.1 -0.9 -2 -2 -2 Z m -6 9 c -1.1 0 -2 -0.9 -2 -2 s 0.9 -2 2 -2 s 2 0.9 2 2 s -0.9 2 -2 2 Z m 3.1 -9 H 8.9 V 6 c 0 -1.71 1.39 -3.1 3.1 -3.1 c 1.71 0 3.1 1.39 3.1 3.1 v 2 Z"/></svg>')`,
-		},
-	},
-	'& .MuiSwitch-track': {
-		opacity: 1,
-		backgroundColor: '#8796A5',
-		borderRadius: 20 / 2,
-	},
-}));
 
 const Tag = ({ name, removeTagHandler }) => (
 	<Button
@@ -100,7 +51,7 @@ const SettingModal = ({
 	tagChangeHandler,
 }) => (
 	<Modal open={openSettingModal} onClose={closeSettingHandler} keepMounted>
-		<form
+		<CenterModal
 			style={{
 				position: 'absolute',
 				top: '50%',
@@ -111,7 +62,7 @@ const SettingModal = ({
 				borderRadius: '10px',
 			}}
 		>
-			<Stack direction='column' spacing={2} alignItems='center' justifyContent='center'>
+			<Stack direction='column' spacing={3} alignItems='center' justifyContent='center'>
 				<Stack direction='row' spacing={2} alignItems='center' sx={{ fontWeight: 700 }}>
 					<label style={{ color: !privacy ? '#C00734' : 'black' }}>Private</label>
 					<MaterialUISwitch checked={privacy} onChange={privacyHandler} />
@@ -134,42 +85,59 @@ const SettingModal = ({
 					</Button>
 				</Stack>
 			</Stack>
-		</form>
+		</CenterModal>
 	</Modal>
 );
 
 const CreatePage = () => {
 	const navigate = useNavigate();
+	const dispatch = useDispatch();
+	const { id } = useParams();
 	const [cards, setCards] = useState([]);
 	const [loading, setLoading] = useState(false);
-	const [notification, setNotification] = useState(defaultNotification);
 	const [openSettingModal, setOpenSettingModal] = useState(false);
 	const [tag, setTag] = useState('');
 	const [tags, setTags] = useState([]);
 	const [privacy, setPrivacy] = useState(false);
-
+	const [title, setTitle] = useState('');
 	const currentUser = useSelector((state) => state.user.currentUser);
-
-	const removeNotification = () => setNotification(defaultNotification);
 
 	const onSubmitHandler = (e) => {
 		e.preventDefault();
 		if (cards.length === 0) {
-			setNotification({ message: 'The set is empty', state: 'warning' });
+			dispatch(setCurrentNotification({ message: 'The set is empty', severity: 'warning' }));
 		} else if (cards.every((card) => card.term && card.meaning)) {
 			// Send to firebase
 			try {
 				setLoading(true);
-				setNotification({ message: 'Creating set...', state: 'info' });
-				// Await Send to firebase
+				dispatch(setCurrentNotification({ message: 'Creating set...', severity: 'info' }));
+				addLearningSet(
+					{
+						id: id || uuidv1(),
+						content: cards,
+						tags,
+						privacy,
+						title,
+						created: Date.now(),
+					},
+					currentUser.uid
+				);
 				setLoading(false);
-				setNotification({ message: 'Set created successfully', state: 'success' });
+				dispatch(
+					setCurrentNotification({ message: 'Set created successfully', severity: 'success' })
+				);
+				navigate('/set');
 			} catch (e) {
 				setLoading(false);
-				setNotification({ message: e.message, state: 'error' });
+				dispatch(setCurrentNotification({ message: e.message, severity: 'error' }));
 			}
 		} else {
-			setNotification({ message: 'All terms and meanings must be filled in', state: 'warning' });
+			dispatch(
+				setCurrentNotification({
+					message: 'All terms and meanings must be filled in',
+					severity: 'warning',
+				})
+			);
 		}
 	};
 
@@ -195,7 +163,7 @@ const CreatePage = () => {
 
 	const removeHandler = (id) => {
 		setCards(cards.filter((card) => card.id !== id));
-		setNotification({ message: 'Card delete successfully', state: 'success' });
+		dispatch(setCurrentNotification({ message: 'Card delete successfully', severity: 'success' }));
 	};
 
 	const onDragEnd = (result) => {
@@ -222,18 +190,22 @@ const CreatePage = () => {
 	const addTagHandler = (e) => {
 		e.preventDefault();
 		if (!tag) {
-			setNotification({
-				message: 'Cannot set empty tag',
-				state: 'warning',
-			});
+			dispatch(
+				setCurrentNotification({
+					message: 'Cannot set empty tag',
+					severity: 'warning',
+				})
+			);
 			return;
 		}
 		const addedTag = tag.toUpperCase();
 		if (!tags.every((tag) => tag !== addedTag)) {
-			setNotification({
-				message: 'Tag already exists',
-				state: 'warning',
-			});
+			dispatch(
+				setCurrentNotification({
+					message: 'Tag already exists',
+					severity: 'warning',
+				})
+			);
 			return;
 		}
 		setTags([...tags, addedTag]);
@@ -248,6 +220,30 @@ const CreatePage = () => {
 		setPrivacy(!privacy);
 	};
 
+	const titleHandler = (e) => {
+		setTitle(e.target.value);
+	};
+
+	useEffect(() => {
+		if (!id) navigate('/create');
+		const fetchSetAsync = async () => {
+			try {
+				const response = await fetchLearningSet(id, currentUser?.uid);
+				if (!response) return;
+				setCards(response.content);
+				setPrivacy(response.privacy);
+				setTags(response.tags);
+				setTitle(response.title);
+			} catch (e) {
+				dispatch(
+					setCurrentNotification({ message: `Cannot fetch set with ID: ${id}`, state: 'error' })
+				);
+			}
+		};
+		fetchSetAsync();
+		// eslint-disable-next-line
+	}, [currentUser]);
+
 	return (
 		<>
 			<Stack
@@ -259,7 +255,13 @@ const CreatePage = () => {
 			>
 				<form onSubmit={onSubmitHandler}>
 					<Stack direction='row' justifyContent='center' alignItems='center' spacing={2}>
-						<TextField required label='Title' variant='standard'></TextField>
+						<TextField
+							required
+							label='Title'
+							variant='standard'
+							value={title}
+							onChange={titleHandler}
+						/>
 						<Button onClick={openSettingHandler}>
 							<SettingsIcon color='primary' />
 						</Button>
@@ -325,53 +327,6 @@ const CreatePage = () => {
 					Add
 				</Button>
 			</Stack>
-			<Modal open={!currentUser}>
-				<div
-					style={{
-						position: 'absolute',
-						top: '50%',
-						left: '50%',
-						transform: 'translate(-50%, -50%)',
-						outline: 'none',
-						textAlign: 'center',
-						background: 'white',
-						padding: '20px',
-						borderRadius: '20px',
-					}}
-				>
-					<Typography variant='h5'>Become a user to use this feature</Typography>
-					<Link
-						variant='h5'
-						color='primary'
-						underline='hover'
-						component='div'
-						onClick={() => navigate('/signup')}
-						sx={{
-							cursor: 'pointer',
-						}}
-					>
-						Sign Up
-					</Link>
-					<Typography variant='h5'>Or if you already have an account</Typography>
-					<Link
-						variant='h5'
-						color='primary'
-						underline='hover'
-						component='div'
-						onClick={() => navigate('/signin')}
-						sx={{
-							cursor: 'pointer',
-						}}
-					>
-						Sign In
-					</Link>
-				</div>
-			</Modal>
-			{notification.message && (
-				<Toastr severity={notification.state} timeToLive={5} removeHandler={removeNotification}>
-					{notification.message}
-				</Toastr>
-			)}
 			<SettingModal
 				openSettingModal={openSettingModal}
 				closeSettingHandler={closeSettingHandler}

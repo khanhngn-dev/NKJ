@@ -1,32 +1,17 @@
-import { useEffect, useState } from 'react';
-import { Alert } from '@mui/material';
-import { ToastrWarpper } from './Toastr.styles';
+import { Alert, Snackbar } from '@mui/material';
 
 const Toastr = ({ severity, children, timeToLive, removeHandler }) => {
-	const [out, setOut] = useState(false);
-	let timeOutID;
-
-	const onCloseHandler = () => {
-		setOut(true);
-		clearTimeout(timeOutID);
-		setTimeout(() => removeHandler(), 1000);
-	};
-
-	useEffect(() => {
-		setTimeout(() => {
-			setOut(true);
-		}, timeToLive * 1000);
-		// eslint-disable-next-line
-		timeOutID = setTimeout(() => removeHandler(), (timeToLive + 1) * 1000);
-		// eslint-disable-next-line
-	}, []);
-
 	return (
-		<ToastrWarpper className={out ? 'out' : 'in'}>
-			<Alert severity={severity} variant='filled' onClose={onCloseHandler}>
+		<Snackbar
+			anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+			open={Boolean(severity)}
+			autoHideDuration={timeToLive * 1000}
+			onClose={removeHandler}
+		>
+			<Alert severity={severity} variant='filled' onClose={removeHandler}>
 				{children}
 			</Alert>
-		</ToastrWarpper>
+		</Snackbar>
 	);
 };
 

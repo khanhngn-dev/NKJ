@@ -1,5 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import userReducer from './user/user.slice';
+import notificationReducer from './notification/notification.slice';
 
 export const store = configureStore({
 	middleware: (getDefaultMiddleware) =>
@@ -8,5 +9,6 @@ export const store = configureStore({
 		}),
 	reducer: {
 		user: userReducer,
+		notification: notificationReducer,
 	},
 });

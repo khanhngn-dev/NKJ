@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import axios from 'axios';
+
 import { Box, Tabs, Tab } from '@mui/material';
 import TabPanel from '../../components/TabPanel/TabPanel.component';
-import Toastr from '../../components/Toastr/Toastr.component';
-import axios from 'axios';
+
+import { setCurrentNotification } from '../../redux/notification/notification.slice';
 
 const ALPHABET_LIST = ['Hiragana', 'Katakana', 'Kanji'];
 
@@ -14,23 +17,16 @@ const options = {
 	},
 };
 
-const defaultNotification = {
-	message: '',
-	state: '',
-};
-
 const AlphabetPage = () => {
+	const dispatch = useDispatch();
 	const [tabIndex, setTabIndex] = useState(0);
 	const [loading, setLoading] = useState(false);
 	const [alphabet, setAlphabet] = useState([]);
-	const [notification, setNotification] = useState(defaultNotification);
 
 	const handleTabChange = (e, newValue) => {
 		setTabIndex(newValue);
 		fetchAlphabet(e.target.id.toLowerCase());
 	};
-
-	const removeNotification = () => setNotification(defaultNotification);
 
 	const fetchAlphabet = async (alphabet) => {
 		setLoading(true);
@@ -43,13 +39,14 @@ const AlphabetPage = () => {
 			setAlphabet(result.data['0'].content);
 		} catch (e) {
 			setLoading(false);
-			setNotification({ message: e.message, state: 'error' });
+			dispatch(setCurrentNotification({ message: e.message, severity: 'error' }));
 			setAlphabet([]);
 		}
 	};
 
 	useEffect(() => {
 		fetchAlphabet('hiragana');
+		// eslint-disable-next-line
 	}, []);
 
 	return (
@@ -91,11 +88,6 @@ const AlphabetPage = () => {
 					loading={loading}
 				></TabPanel>
 			</Box>
-			{notification.message && (
-				<Toastr severity={notification.state} timeToLive={5} removeHandler={removeNotification}>
-					{notification.message}
-				</Toastr>
-			)}
 		</>
 	);
 };

@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useDispatch } from 'react-redux';
+import { setCurrentNotification } from '../../redux/notification/notification.slice';
+
 import { TextField, Stack, Typography, Link, Button, Divider } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
 import FacebookIcon from '@mui/icons-material/Facebook';
@@ -10,7 +13,7 @@ import {
 	signInUsingGooglePopUp,
 	signInUsingGithubPopup,
 } from '../../utils/firebase/firebase.utils';
-import Toastr from '../../components/Toastr/Toastr.component';
+
 import { SpinnerContainer } from '../../components/Spinner/Spinner.styles';
 
 const defaultFormField = {
@@ -18,21 +21,14 @@ const defaultFormField = {
 	password: '',
 };
 
-const defaultNotification = {
-	message: '',
-	state: '',
-};
-
 const SignInPage = () => {
 	const navigate = useNavigate();
+	const dispatch = useDispatch();
 	const [formField, setFormField] = useState(defaultFormField);
 	const [emailError, setEmailError] = useState(false);
 	const [pwdError, setPwdError] = useState(false);
-	const [notification, setNotification] = useState(defaultNotification);
 	const [loading, setLoading] = useState(false);
 	const { email, password } = formField;
-
-	const removeNotification = () => setNotification(defaultNotification);
 
 	const onChangeHandler = (e) => {
 		const { name, value } = e.target;
@@ -53,14 +49,17 @@ const SignInPage = () => {
 		try {
 			setLoading(true);
 			await signInUsingEmailPassword(email, password);
-			setNotification({ message: 'Sign in successfully', state: 'success' });
+			dispatch(setCurrentNotification({ message: 'Sign in successfully', severity: 'success' }));
 			setLoading(false);
 		} catch (e) {
 			setLoading(false);
-			setNotification({
-				message: e?.code?.split('/')[1].replace(/-/g, ' ').toUpperCase(),
-				state: 'error',
-			});
+			dispatch(
+				setCurrentNotification({
+					// message: e?.code?.split('/')[1].replace(/-/g, ' ').toUpperCase(),
+					message: 'Incorrect email/password',
+					severity: 'error',
+				})
+			);
 			if (e.code === 'auth/wrong-password') {
 				setPwdError(true);
 			} else if (e.code === 'auth/user-not-found') {
@@ -73,15 +72,17 @@ const SignInPage = () => {
 		try {
 			setLoading(true);
 			await popUp();
-			setNotification({ message: 'Sign in successfully', state: 'success' });
+			dispatch(setCurrentNotification({ message: 'Sign in successfully', severity: 'success' }));
 			setLoading(false);
 		} catch (e) {
 			setLoading(false);
 			if (e.code === 'auth/account-exists-with-different-credential') {
-				setNotification({
-					message: 'Account already exist with different credentials',
-					state: 'error',
-				});
+				dispatch(
+					setCurrentNotification({
+						message: 'Account already exist with different credentials',
+						severity: 'error',
+					})
+				);
 			}
 		}
 	};
@@ -231,11 +232,6 @@ const SignInPage = () => {
 					</form>
 				</Stack>
 			</div>
-			{notification.message && (
-				<Toastr severity={notification.state} timeToLive={5} removeHandler={removeNotification}>
-					{notification.message}
-				</Toastr>
-			)}
 		</>
 	);
 };
