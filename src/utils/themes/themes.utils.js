@@ -1,6 +1,9 @@
-import { createTheme } from '@mui/material/styles';
+import { createTheme, responsiveFontSizes } from '@mui/material/styles';
 
-export const defaultTheme = createTheme({
+const defaultTheme = createTheme({
+	typography: {
+		fontFamily: 'Nunito,Roboto,sans-serif',
+	},
 	palette: {
 		primary: {
 			main: '#C00734',
@@ -13,3 +16,7 @@ export const defaultTheme = createTheme({
 		},
 	},
 });
+
+const responsiveDefaultTheme = responsiveFontSizes(defaultTheme);
+
+export default responsiveDefaultTheme;

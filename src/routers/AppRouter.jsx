@@ -6,7 +6,7 @@ import Navigation from '../components/Navigation/Navigation.component';
 import Toastr from '../components/Toastr/Toastr.component';
 
 import { ThemeProvider } from '@mui/material';
-import { defaultTheme } from '../utils/themes/themes.utils';
+import responsiveDefaultTheme from '../utils/themes/themes.utils';
 
 const defaultNotification = {
 	message: '',
@@ -24,7 +24,7 @@ const AppRouter = () => {
 	};
 
 	return (
-		<ThemeProvider theme={defaultTheme}>
+		<ThemeProvider theme={responsiveDefaultTheme}>
 			<Navigation />
 			<Outlet />
 			{message && (
