@@ -78,11 +78,17 @@ const FlashCardPage = () => {
 		const fetchSetAsync = async () => {
 			if (privacy) {
 				const response = await fetchPublicLearningSet(id);
-				if (!response) return;
+				if (!response) {
+					setLoading(false);
+					return;
+				}
 				setFlashCard(response);
 			} else {
 				const response = await fetchLearningSet(id, currentUser?.uid);
-				if (!response) return;
+				if (!response) {
+					setLoading(false);
+					return;
+				}
 				setFlashCard(response);
 			}
 			setLoading(false);

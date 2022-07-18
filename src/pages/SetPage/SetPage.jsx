@@ -103,7 +103,10 @@ const SetPage = () => {
 			currentUser.uid,
 			(fetchLength + 1) * DEFAULT_MAX_SET
 		);
-		if (!response) return;
+		if (!response) {
+			setLoading(false);
+			return;
+		}
 		setSets(response);
 		setLoading(false);
 	};
