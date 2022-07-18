@@ -18,6 +18,9 @@ import {
 	getDoc,
 	getDocs,
 	deleteDoc,
+	query,
+	limit,
+	orderBy,
 } from 'firebase/firestore';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -74,6 +77,13 @@ export const signOutUser = async () => {
 
 export const addLearningSet = async (set, userID) => {
 	if (!set.id || !userID) return;
+	const setRefPublic = doc(firestore, `public_sets/${set.id}`);
+	if (set.privacy) {
+		await setDoc(setRefPublic, set);
+	} else {
+		const doc = await getDoc(setRefPublic);
+		if (doc.exists()) deleteDoc(setRefPublic);
+	}
 	const setRef = doc(firestore, `user/${userID}/sets/${set.id}`);
 	await setDoc(setRef, set);
 };
@@ -86,15 +96,35 @@ export const fetchLearningSet = async (setID, userID) => {
 	// throw new Error('Set does not exist');
 };
 
-export const fetchAllLearningSets = async (userID) => {
+export const fetchPublicLearningSet = async (setID) => {
+	if (!setID) return;
+	const setRef = doc(firestore, `public_sets/${setID}`);
+	const setSnapshot = await getDoc(setRef);
+	if (setSnapshot.exists()) return setSnapshot.data();
+	// throw new Error('Set does not exist');
+};
+
+export const DEFAULT_MAX_SET = 6;
+
+export const fetchAllLearningSets = async (userID, numSets = DEFAULT_MAX_SET) => {
 	if (!userID) return;
 	const setsRef = collection(firestore, `user/${userID}/sets`);
-	const setsSnapshot = await getDocs(setsRef);
+	const q = query(setsRef, orderBy('created', 'desc'), limit(numSets));
+	const setsSnapshot = await getDocs(q);
+	if (!setsSnapshot.empty) return setsSnapshot.docs.map((doc) => doc.data());
+};
+
+export const fetchAllPublicLearningSets = async (numSets = DEFAULT_MAX_SET) => {
+	const publicSetsRef = collection(firestore, 'public_sets');
+	const q = query(publicSetsRef, orderBy('created', 'desc'), limit(numSets));
+	const setsSnapshot = await getDocs(q);
 	if (!setsSnapshot.empty) return setsSnapshot.docs.map((doc) => doc.data());
 };
 
 export const deleteLearningSet = async (setID, userID) => {
 	if (!setID || !userID) return;
 	const setRef = doc(firestore, `user/${userID}/sets/${setID}`);
+	const setRefPublic = doc(firestore, `public_sets/${setID}`);
+	await deleteDoc(setRefPublic);
 	await deleteDoc(setRef);
 };

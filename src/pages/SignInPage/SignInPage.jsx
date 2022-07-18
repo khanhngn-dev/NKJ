@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useDispatch } from 'react-redux';
-import { setCurrentNotification } from '../../redux/notification/notification.slice';
+import { setNotificationAsync } from '../../redux/notification/notification.action';
 
 import { TextField, Stack, Typography, Link, Button, Divider } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
@@ -49,12 +49,12 @@ const SignInPage = () => {
 		try {
 			setLoading(true);
 			await signInUsingEmailPassword(email, password);
-			dispatch(setCurrentNotification({ message: 'Sign in successfully', severity: 'success' }));
+			dispatch(setNotificationAsync({ message: 'Sign in successfully', severity: 'success' }));
 			setLoading(false);
 		} catch (e) {
 			setLoading(false);
 			dispatch(
-				setCurrentNotification({
+				setNotificationAsync({
 					// message: e?.code?.split('/')[1].replace(/-/g, ' ').toUpperCase(),
 					message: 'Incorrect email/password',
 					severity: 'error',
@@ -72,13 +72,13 @@ const SignInPage = () => {
 		try {
 			setLoading(true);
 			await popUp();
-			dispatch(setCurrentNotification({ message: 'Sign in successfully', severity: 'success' }));
+			dispatch(setNotificationAsync({ message: 'Sign in successfully', severity: 'success' }));
 			setLoading(false);
 		} catch (e) {
 			setLoading(false);
 			if (e.code === 'auth/account-exists-with-different-credential') {
 				dispatch(
-					setCurrentNotification({
+					setNotificationAsync({
 						message: 'Account already exist with different credentials',
 						severity: 'error',
 					})

@@ -17,7 +17,7 @@ import { MaterialUISwitch } from './CreatePage.styles';
 import { v1 as uuidv1 } from 'uuid';
 
 import { addLearningSet, fetchLearningSet } from '../../utils/firebase/firebase.utils';
-import { setCurrentNotification } from '../../redux/notification/notification.slice';
+import { setNotificationAsync } from '../../redux/notification/notification.action';
 
 const reorder = (list, startIndex, endIndex) => {
 	const result = Array.from(list);
@@ -102,16 +102,16 @@ const CreatePage = () => {
 	const [title, setTitle] = useState('');
 	const currentUser = useSelector((state) => state.user.currentUser);
 
-	const onSubmitHandler = (e) => {
+	const onSubmitHandler = async (e) => {
 		e.preventDefault();
 		if (cards.length === 0) {
-			dispatch(setCurrentNotification({ message: 'The set is empty', severity: 'warning' }));
+			dispatch(setNotificationAsync({ message: 'The set is empty', severity: 'warning' }));
 		} else if (cards.every((card) => card.term && card.meaning)) {
 			// Send to firebase
 			try {
 				setLoading(true);
-				dispatch(setCurrentNotification({ message: 'Creating set...', severity: 'info' }));
-				addLearningSet(
+				dispatch(setNotificationAsync({ message: 'Creating set...', severity: 'info' }));
+				await addLearningSet(
 					{
 						id: id || uuidv1(),
 						content: cards,
@@ -119,21 +119,22 @@ const CreatePage = () => {
 						privacy,
 						title,
 						created: Date.now(),
+						user: currentUser.uid,
 					},
 					currentUser.uid
 				);
 				setLoading(false);
 				dispatch(
-					setCurrentNotification({ message: 'Set created successfully', severity: 'success' })
+					setNotificationAsync({ message: 'Set created successfully', severity: 'success' })
 				);
 				navigate('/set');
 			} catch (e) {
 				setLoading(false);
-				dispatch(setCurrentNotification({ message: e.message, severity: 'error' }));
+				dispatch(setNotificationAsync({ message: e.message, severity: 'error' }));
 			}
 		} else {
 			dispatch(
-				setCurrentNotification({
+				setNotificationAsync({
 					message: 'All terms and meanings must be filled in',
 					severity: 'warning',
 				})
@@ -163,7 +164,7 @@ const CreatePage = () => {
 
 	const removeHandler = (id) => {
 		setCards(cards.filter((card) => card.id !== id));
-		dispatch(setCurrentNotification({ message: 'Card delete successfully', severity: 'success' }));
+		dispatch(setNotificationAsync({ message: 'Card delete successfully', severity: 'success' }));
 	};
 
 	const onDragEnd = (result) => {
@@ -191,7 +192,7 @@ const CreatePage = () => {
 		e.preventDefault();
 		if (!tag) {
 			dispatch(
-				setCurrentNotification({
+				setNotificationAsync({
 					message: 'Cannot set empty tag',
 					severity: 'warning',
 				})
@@ -201,7 +202,7 @@ const CreatePage = () => {
 		const addedTag = tag.toUpperCase();
 		if (!tags.every((tag) => tag !== addedTag)) {
 			dispatch(
-				setCurrentNotification({
+				setNotificationAsync({
 					message: 'Tag already exists',
 					severity: 'warning',
 				})
@@ -225,18 +226,23 @@ const CreatePage = () => {
 	};
 
 	useEffect(() => {
-		if (!id) navigate('/create');
 		const fetchSetAsync = async () => {
 			try {
 				const response = await fetchLearningSet(id, currentUser?.uid);
-				if (!response) return;
+				if (!response) {
+					navigate('/create');
+					dispatch(
+						setNotificationAsync({ message: `Set with ID ${id} does not exist`, state: 'error' })
+					);
+					return;
+				}
 				setCards(response.content);
 				setPrivacy(response.privacy);
 				setTags(response.tags);
 				setTitle(response.title);
 			} catch (e) {
 				dispatch(
-					setCurrentNotification({ message: `Cannot fetch set with ID: ${id}`, state: 'error' })
+					setNotificationAsync({ message: `Cannot fetch set with ID: ${id}`, state: 'error' })
 				);
 			}
 		};
@@ -277,7 +283,10 @@ const CreatePage = () => {
 					</Stack>
 				</form>
 				{cards.length === 0 ? (
-					<div>Placeholder</div>
+					<div style={{ color: 'var(--primary-color)', fontWeight: 700, textAlign: 'center' }}>
+						<div style={{ fontSize: '1.5rem' }}>The set is empty</div>
+						<div style={{ fontSize: '1.25rem' }}>Add a pair of terms and meanings</div>
+					</div>
 				) : (
 					<DragDropContext onDragEnd={onDragEnd}>
 						<Droppable droppableId='setsList'>
@@ -293,6 +302,7 @@ const CreatePage = () => {
 									alignItems='center'
 									{...provided.droppableProps}
 									ref={provided.innerRef}
+									gap='20px'
 								>
 									{cards.map((card, index) => (
 										<Draggable key={card.id} draggableId={card.id} index={index}>

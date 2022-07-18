@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router';
 import { useSelector, useDispatch } from 'react-redux';
-import { setCurrentNotification } from '../redux/notification/notification.slice';
+import { setNotificationAsync } from '../redux/notification/notification.action';
 
 import Navigation from '../components/Navigation/Navigation.component';
 import Toastr from '../components/Toastr/Toastr.component';
@@ -20,7 +20,7 @@ const AppRouter = () => {
 
 	const removeNotification = (event, reason) => {
 		if (reason === 'clickaway') return;
-		dispatch(setCurrentNotification(defaultNotification));
+		dispatch(setNotificationAsync(defaultNotification));
 	};
 
 	return (

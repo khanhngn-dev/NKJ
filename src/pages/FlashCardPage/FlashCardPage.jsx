@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, generatePath } from 'react-router';
 import { useSelector, useDispatch } from 'react-redux';
-import { deleteLearningSet, fetchLearningSet } from '../../utils/firebase/firebase.utils';
-import { Stack, LinearProgress, Typography, Button, Modal } from '@mui/material';
+import {
+	deleteLearningSet,
+	fetchLearningSet,
+	fetchPublicLearningSet,
+} from '../../utils/firebase/firebase.utils';
+import { Stack, LinearProgress, Typography, Button, Modal, Skeleton } from '@mui/material';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import EditIcon from '@mui/icons-material/Edit';
@@ -10,17 +14,18 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import FlipCard from '../../components/FlipCard/FlipCard.component';
 
 import { timeConverter } from '../../utils/date/date';
-import { setCurrentNotification } from '../../redux/notification/notification.slice';
+import { setNotificationAsync } from '../../redux/notification/notification.action';
 import CenterModal from '../../components/CenterModal/CenterModal.component';
 
 const FlashCardPage = () => {
-	const { id } = useParams();
+	const { id, privacy } = useParams();
 	const navigate = useNavigate();
 	const dispatch = useDispatch();
 	const currentUser = useSelector((state) => state.user.currentUser);
 	const [flashCard, setFlashCard] = useState({});
 	const [currentCard, setCurrentCard] = useState(0);
 	const [showBack, setShowBack] = useState(false);
+	const [loading, setLoading] = useState(true);
 	const [deleteID, setDeleteID] = useState('');
 
 	const deleteSetHandler = (setID) => {
@@ -31,14 +36,13 @@ const FlashCardPage = () => {
 		setDeleteID('');
 	};
 
-	const confirmDeleteHandler = (setID) => {
+	const confirmDeleteHandler = async (setID) => {
 		try {
-			deleteLearningSet(setID, currentUser.uid);
-			dispatch(
-				setCurrentNotification({ message: 'Set deleted successfully', severity: 'success' })
-			);
+			await deleteLearningSet(setID, currentUser.uid);
+			dispatch(setNotificationAsync({ message: 'Set deleted successfully', severity: 'success' }));
 		} catch (e) {
-			dispatch(setCurrentNotification({ message: 'Failed to delete set', severity: 'error' }));
+			dispatch(setNotificationAsync({ message: 'Failed to delete set', severity: 'error' }));
+			return;
 		}
 		closeDeleteHandler();
 		navigate('/set');
@@ -72,9 +76,16 @@ const FlashCardPage = () => {
 
 	useEffect(() => {
 		const fetchSetAsync = async () => {
-			const response = await fetchLearningSet(id, currentUser?.uid);
-			if (!response) return;
-			setFlashCard(response);
+			if (privacy) {
+				const response = await fetchPublicLearningSet(id);
+				if (!response) return;
+				setFlashCard(response);
+			} else {
+				const response = await fetchLearningSet(id, currentUser?.uid);
+				if (!response) return;
+				setFlashCard(response);
+			}
+			setLoading(false);
 		};
 		fetchSetAsync();
 		// eslint-disable-next-line
@@ -86,29 +97,66 @@ const FlashCardPage = () => {
 				direction='row'
 				justifyContent='center'
 				alignItems='center'
-				sx={{ margin: 'auto', height: `calc(100vh - 60px)`, maxWidth: '1200px' }}
+				sx={{
+					margin: 'auto',
+					maxWidth: '1200px',
+					position: 'relative',
+					marginTop: '120px',
+				}}
 			>
 				<Stack
 					direction='column'
 					justifyContent='center'
 					alignItems='center'
-					sx={{ flex: 3, padding: '20px', height: '100%', boxShadow: 1 }}
+					sx={{
+						flex: 3,
+						padding: '20px',
+						height: '100%',
+						boxShadow: 1,
+						position: 'sticky',
+						alignSelf: 'flex-start',
+						top: 0,
+					}}
 					spacing={4}
 				>
-					<Typography variant='h5' color='primary'>
-						{flashCard?.title}
+					<Typography variant='h5' color='primary' sx={{ width: '100%' }} textAlign='center'>
+						{loading ? <Skeleton /> : flashCard?.title}
 					</Typography>
-					{flashCard?.tags?.length !== 0 && (
-						<Stack direction='row' flexWrap='wrap' justifyContent='center' alignItems='center'>
-							{flashCard?.tags?.map((tag, index) => (
-								<Button key={index} variant='contained' sx={{ margin: '5px' }}>
-									{tag}
-								</Button>
+					{loading ? (
+						<Stack direction='row' flexWrap='wrap' alignItems='center' sx={{ gap: '5px' }}>
+							{[...new Array(6)].map((_, index) => (
+								<Skeleton
+									key={index}
+									variant='rectangular'
+									width={50}
+									height={30}
+									sx={{ marginTop: '5px', marginLeft: 0, minWidth: '50px', flex: 1 }}
+								/>
 							))}
 						</Stack>
+					) : (
+						flashCard?.tags?.length !== 0 && (
+							<Stack direction='row' flexWrap='wrap' justifyContent='center' alignItems='center'>
+								{flashCard?.tags?.map((tag, index) => (
+									<Button key={index} variant='contained' sx={{ margin: '5px' }}>
+										{tag}
+									</Button>
+								))}
+							</Stack>
+						)
 					)}
-					<Typography variant='h6' color='primary'>
-						{currentCard + 1} / {flashCard?.content?.length}
+					<Typography
+						variant='h6'
+						color='primary'
+						style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}
+					>
+						<span>{currentCard + 1}</span>
+						<span> / </span>
+						{loading ? (
+							<Skeleton component='span' width='1.25rem' height={32} />
+						) : (
+							flashCard?.content?.length
+						)}
 					</Typography>
 					<div style={{ width: '100%' }}>
 						<LinearProgress
@@ -117,31 +165,33 @@ const FlashCardPage = () => {
 							sx={{ height: '10px', borderRadius: '10px' }}
 						/>
 					</div>
-					<Stack
-						direction='row'
-						justifyContent='center'
-						alignItems='center'
-						sx={{ alignSelf: 'center' }}
-						spacing={2}
-					>
-						<Button
-							variant='contained'
-							onClick={() => {
-								navigate(
-									generatePath('/create/:id', {
-										id,
-									})
-								);
-							}}
+					{flashCard?.user === currentUser?.uid && (
+						<Stack
+							direction='row'
+							justifyContent='center'
+							alignItems='center'
+							sx={{ alignSelf: 'center' }}
+							spacing={2}
 						>
-							<EditIcon />
-						</Button>
-						<Button variant='contained' onClick={() => deleteSetHandler(id)}>
-							<DeleteIcon />
-						</Button>
-					</Stack>
-					<Typography variant='h6' color='primary'>
-						Created: {timeConverter(flashCard?.created)}
+							<Button
+								variant='contained'
+								onClick={() => {
+									navigate(
+										generatePath('/create/:id', {
+											id,
+										})
+									);
+								}}
+							>
+								<EditIcon />
+							</Button>
+							<Button variant='contained' onClick={() => deleteSetHandler(id)}>
+								<DeleteIcon />
+							</Button>
+						</Stack>
+					)}
+					<Typography variant='h6' color='primary' sx={{ width: '100%' }} textAlign='center'>
+						{loading ? <Skeleton /> : `Created: ${timeConverter(flashCard?.created)}`}
 					</Typography>
 				</Stack>
 				<Stack
@@ -154,9 +204,13 @@ const FlashCardPage = () => {
 						showBack={showBack}
 						showBackHandler={showBackHandler}
 						front={
-							<Typography variant='h5' color='white'>
-								{flashCard.title ? flashCard.content[currentCard].term : 'Term'}
-							</Typography>
+							loading ? (
+								<Skeleton width='100%' />
+							) : (
+								<Typography variant='h5' color='white'>
+									{flashCard.title ? flashCard.content[currentCard].term : 'Term'}
+								</Typography>
+							)
 						}
 						back={
 							<Typography variant='h5' color='white'>

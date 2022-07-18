@@ -1,6 +1,5 @@
-import { Typography, Grid, Stack } from '@mui/material';
+import { Typography, Grid, Stack, Skeleton } from '@mui/material';
 import Card from '../../components/Card/Card.component';
-import Spinner from '../Spinner/Spinner.component';
 
 const TabPanel = ({ title, letters, loading }) => {
 	return (
@@ -14,7 +13,13 @@ const TabPanel = ({ title, letters, loading }) => {
 				{title}
 			</Typography>
 			{loading ? (
-				<Spinner />
+				<Grid container spacing={4}>
+					{[...new Array(40)].map((_, index) => (
+						<Grid item sm={3} xs={3} md={11 / 12} key={index}>
+							<Skeleton height={80} />
+						</Grid>
+					))}
+				</Grid>
 			) : (
 				<>
 					{letters.length ? (

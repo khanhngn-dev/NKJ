@@ -54,11 +54,8 @@ function App() {
 						path='profile'
 						element={currentUser ? <ProfilePage /> : <BecomeUserPage />}
 					></Route>
-					<Route path='set' element={currentUser ? <SetPage /> : <BecomeUserPage />}></Route>
-					<Route
-						path='set/:id'
-						element={currentUser ? <FlashCardPage /> : <BecomeUserPage />}
-					></Route>
+					<Route path='set' element={<SetPage />}></Route>
+					<Route path='set/:privacy/:id' element={<FlashCardPage />}></Route>
 					<Route path='*' element={<Error404Page />}></Route>
 				</Route>
 			</Routes>

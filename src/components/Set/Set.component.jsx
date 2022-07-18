@@ -8,10 +8,9 @@ const Set = forwardRef(
 			<Grid
 				container
 				sx={{
-					margin: '10px 0',
 					padding: '20px',
 					gap: '10px',
-					width: '90%',
+					width: '100%',
 					borderRadius: '10px',
 					border: '4px solid',
 					borderColor: dragOver ? '#ffb8b1' : '#fff',

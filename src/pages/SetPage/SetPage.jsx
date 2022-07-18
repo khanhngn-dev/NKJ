@@ -1,23 +1,31 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { setCurrentNotification } from '../../redux/notification/notification.slice';
+import { setNotificationAsync } from '../../redux/notification/notification.action';
+import { useNavigate } from 'react-router';
 
 import {
 	Button,
 	Modal,
 	Grid,
-	Box,
 	Typography,
 	TextField,
 	Stack,
 	MenuItem,
 	InputAdornment,
+	Divider,
+	Chip,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import SetSummary from '../../components/SetSummary/SetSummary.component';
+import SetSummary, { SkeletonSummary } from '../../components/SetSummary/SetSummary.component';
 
-import { deleteLearningSet, fetchAllLearningSets } from '../../utils/firebase/firebase.utils';
+import {
+	DEFAULT_MAX_SET,
+	deleteLearningSet,
+	fetchAllLearningSets,
+	fetchAllPublicLearningSets,
+} from '../../utils/firebase/firebase.utils';
 import CenterModal from '../../components/CenterModal/CenterModal.component';
+import { SpinnerContainer } from '../../components/Spinner/Spinner.styles';
 
 const sortByList = [
 	{
@@ -36,11 +44,16 @@ const sortByList = [
 
 const SetPage = () => {
 	const dispatch = useDispatch();
-	const [sets, SetSets] = useState([]);
+	const navigate = useNavigate();
+	const [sets, setSets] = useState([]);
 	const [filteredSets, setFilteredSets] = useState(sets);
+	const [publicSets, setPublicSets] = useState([]);
+	const [filteredPublicSets, setFilteredPublicSets] = useState(publicSets);
 	const [sortBy, setSortBy] = useState(0);
+	const [fetchLength, setFetchLength] = useState(1);
 	const [searchTerm, setSearchTerm] = useState('');
 	const [deleteID, setDeleteID] = useState('');
+	const [loading, setLoading] = useState(true);
 	const currentUser = useSelector((state) => state.user.currentUser);
 
 	const deleteSetHandler = (setID) => {
@@ -51,15 +64,26 @@ const SetPage = () => {
 		setDeleteID('');
 	};
 
+	const fetchSetsAsync = useCallback(async (userID) => {
+		const response = await fetchAllLearningSets(userID);
+		const publicResponse = await fetchAllPublicLearningSets();
+		if (publicResponse) {
+			setPublicSets(publicResponse);
+		}
+		if (response) {
+			setSets(response);
+		}
+		setLoading(false);
+	}, []);
+
 	const confirmDeleteHandler = (setID) => {
 		try {
 			deleteLearningSet(setID, currentUser.uid);
-			dispatch(
-				setCurrentNotification({ message: 'Set deleted successfully', severity: 'success' })
-			);
-			SetSets([...sets].filter((set) => set.id !== setID));
+			dispatch(setNotificationAsync({ message: 'Set deleted successfully', severity: 'success' }));
+			setLoading(true);
+			fetchSetsAsync(currentUser.uid);
 		} catch (e) {
-			dispatch(setCurrentNotification({ message: 'Failed to delete set', severity: 'error' }));
+			dispatch(setNotificationAsync({ message: 'Failed to delete set', severity: 'error' }));
 		}
 		closeDeleteHandler();
 	};
@@ -72,11 +96,17 @@ const SetPage = () => {
 		setSortBy(e.target.value);
 	};
 
-	const fetchSetsAsync = useCallback(async (userID) => {
-		const response = await fetchAllLearningSets(userID);
+	const fetchMoreSetsHandler = async () => {
+		setLoading(true);
+		setFetchLength(fetchLength + 1);
+		const response = await fetchAllLearningSets(
+			currentUser.uid,
+			(fetchLength + 1) * DEFAULT_MAX_SET
+		);
 		if (!response) return;
-		SetSets(response);
-	}, []);
+		setSets(response);
+		setLoading(false);
+	};
 
 	useEffect(() => {
 		fetchSetsAsync(currentUser?.uid);
@@ -94,7 +124,16 @@ const SetPage = () => {
 				)
 				.sort((a, b) => sortByList[sortBy].sort(a, b))
 		);
-	}, [searchTerm, sets, sortBy]);
+		setFilteredPublicSets(
+			publicSets
+				.filter(
+					(set) =>
+						set.title.toUpperCase().includes(upperTerm) ||
+						set.tags.some((tag) => tag.includes(upperTerm))
+				)
+				.sort((a, b) => sortByList[sortBy].sort(a, b))
+		);
+	}, [searchTerm, sets, sortBy, publicSets]);
 
 	return (
 		<>
@@ -132,49 +171,169 @@ const SetPage = () => {
 						))}
 					</TextField>
 				</Stack>
-				<Box sx={{ width: '100%', maxWidth: '1200px', margin: 'auto' }}>
+				<div
+					style={{
+						width: '100%',
+						display: 'flex',
+						flexFlow: 'column',
+						justifyContent: 'center',
+						alignItems: 'center',
+						gap: '40px',
+					}}
+				>
+					<Divider flexItem textAlign='left'>
+						<Chip
+							color='primary'
+							sx={{ padding: 3 }}
+							label={
+								<Typography variant='h5' color='white'>
+									Public Set
+								</Typography>
+							}
+						/>
+					</Divider>
 					<Grid container direction='row' flexWrap='wrap' spacing={4}>
-						{filteredSets?.map((set) => (
-							<Grid item key={set.id} xs={6}>
-								<SetSummary key={set.id} set={set} deleteSetHandler={deleteSetHandler} />
+						{loading ? (
+							[...new Array(6)].map((_, index) => (
+								<Grid item key={index} xs={6}>
+									<SkeletonSummary editable={false} />
+								</Grid>
+							))
+						) : filteredPublicSets.length === 0 ? (
+							<Grid item xs={12}>
+								<Typography variant='h5' color='primary'>
+									Empty
+								</Typography>
 							</Grid>
-						))}
+						) : (
+							filteredPublicSets?.map((set, index) => (
+								<Grid item key={set.id || index} xs={6}>
+									<SetSummary
+										editable={currentUser !== null && currentUser?.uid === set.user}
+										key={set.id}
+										set={set}
+										loading={loading}
+										deleteSetHandler={deleteSetHandler}
+									/>
+								</Grid>
+							))
+						)}
 					</Grid>
-				</Box>
-				<Modal open={Boolean(deleteID)} onClose={closeDeleteHandler}>
-					<CenterModal
+					{currentUser ? (
+						<>
+							<Divider flexItem textAlign='left'>
+								<Chip
+									color='primary'
+									sx={{ padding: 3 }}
+									label={
+										<Typography variant='h5' color='white'>
+											Private Set
+										</Typography>
+									}
+								/>
+							</Divider>
+							<Grid container direction='row' flexWrap='wrap' spacing={4}>
+								{loading ? (
+									[...new Array(6)].map((_, index) => (
+										<Grid item key={index} xs={6}>
+											<SkeletonSummary editable={true} />
+										</Grid>
+									))
+								) : filteredSets.length === 0 ? (
+									<Grid item xs={12}>
+										<Typography variant='h5' color='primary'>
+											Empty
+										</Typography>
+									</Grid>
+								) : (
+									filteredSets?.map((set, index) => (
+										<Grid item key={set.id || index} xs={6}>
+											<SetSummary
+												editable={currentUser !== null && currentUser?.uid === set.user}
+												key={set.id}
+												set={set}
+												loading={loading}
+												deleteSetHandler={deleteSetHandler}
+											/>
+										</Grid>
+									))
+								)}
+								<Grid
+									item
+									xs={12}
+									style={{
+										display: 'flex',
+										justifyContent: 'center',
+										alignItems: 'center',
+										cursor: 'pointer',
+									}}
+									onClick={fetchMoreSetsHandler}
+								>
+									<Divider flexItem>
+										<Typography color='primary' variant='body1'>
+											{loading ? (
+												<SpinnerContainer style={{ width: '30px', height: '30px' }} as='span' />
+											) : (
+												'Fetch more sets'
+											)}
+										</Typography>
+									</Divider>
+								</Grid>
+							</Grid>
+						</>
+					) : (
+						<>
+							<Divider flexItem>
+								<Typography variant='body1' color='primary'>
+									OR
+								</Typography>
+							</Divider>
+							<Typography variant='h5'>
+								<span
+									onClick={() => navigate('/signup')}
+									style={{ color: 'var(--primary-color)', cursor: 'pointer' }}
+								>
+									Sign up
+								</span>{' '}
+								to create your own sets
+							</Typography>
+						</>
+					)}
+				</div>
+			</Stack>
+			<Modal open={Boolean(deleteID)} onClose={closeDeleteHandler}>
+				<CenterModal
+					style={{
+						display: 'flex',
+						flexFlow: 'column',
+						justifyContent: 'center',
+						alignItems: 'center',
+						gap: '20px',
+					}}
+				>
+					<Typography variant='h6' color='primary' textAlign='center'>
+						Confirm delete
+					</Typography>
+					<Typography variant='body1' color='primary' textAlign='center'>
+						THIS ACTION IS IRREVERSIBLE
+					</Typography>
+					<div
 						style={{
 							display: 'flex',
-							flexFlow: 'column',
 							justifyContent: 'center',
 							alignItems: 'center',
 							gap: '20px',
 						}}
 					>
-						<Typography variant='h6' color='primary' textAlign='center'>
-							Confirm delete
-						</Typography>
-						<Typography variant='body1' color='primary' textAlign='center'>
-							THIS ACTION IS IRREVERSIBLE
-						</Typography>
-						<div
-							style={{
-								display: 'flex',
-								justifyContent: 'center',
-								alignItems: 'center',
-								gap: '20px',
-							}}
-						>
-							<Button variant='contained' onClick={() => confirmDeleteHandler(deleteID)}>
-								Delete
-							</Button>
-							<Button variant='outlined' onClick={closeDeleteHandler}>
-								Cancel
-							</Button>
-						</div>
-					</CenterModal>
-				</Modal>
-			</Stack>
+						<Button variant='contained' onClick={() => confirmDeleteHandler(deleteID)}>
+							Delete
+						</Button>
+						<Button variant='outlined' onClick={closeDeleteHandler}>
+							Cancel
+						</Button>
+					</div>
+				</CenterModal>
+			</Modal>
 		</>
 	);
 };

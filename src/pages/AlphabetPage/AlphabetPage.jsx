@@ -5,7 +5,7 @@ import axios from 'axios';
 import { Box, Tabs, Tab } from '@mui/material';
 import TabPanel from '../../components/TabPanel/TabPanel.component';
 
-import { setCurrentNotification } from '../../redux/notification/notification.slice';
+import { setNotificationAsync } from '../../redux/notification/notification.action';
 
 const ALPHABET_LIST = ['Hiragana', 'Katakana', 'Kanji'];
 
@@ -39,7 +39,7 @@ const AlphabetPage = () => {
 			setAlphabet(result.data['0'].content);
 		} catch (e) {
 			setLoading(false);
-			dispatch(setCurrentNotification({ message: e.message, severity: 'error' }));
+			dispatch(setNotificationAsync({ message: e.message, severity: 'error' }));
 			setAlphabet([]);
 		}
 	};

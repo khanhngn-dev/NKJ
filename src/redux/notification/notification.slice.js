@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { setNotificationAsync } from './notification.action';
 
 const initialState = {
 	message: '',
@@ -9,13 +10,19 @@ const notificationSlice = createSlice({
 	name: 'notification',
 	initialState,
 	reducers: {
-		setCurrentNotification: (state, action) => {
+		clearNotification: (state, action) => {
+			state.message = '';
+			state.severity = '';
+		},
+	},
+	extraReducers: (builder) => {
+		builder.addCase(setNotificationAsync.fulfilled, (state, action) => {
 			const { message, severity } = action.payload;
 			state.message = message;
 			state.severity = severity;
-		},
+		});
 	},
 });
 
-export const { setCurrentNotification } = notificationSlice.actions;
+export const { clearNotification } = notificationSlice.actions;
 export default notificationSlice.reducer;

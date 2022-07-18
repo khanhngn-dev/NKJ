@@ -30,6 +30,7 @@ export const Card = styled.div`
 	justify-content: center;
 	align-items: center;
 	border-radius: 10px;
+	padding: 20px;
 
 	&.front {
 		transform: rotateX(0);

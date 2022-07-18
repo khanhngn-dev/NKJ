@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { setCurrentNotification } from '../../redux/notification/notification.slice';
+import { setNotificationAsync } from '../../redux/notification/notification.action';
 
 import {
 	Button,
@@ -54,12 +54,10 @@ const ProfilePage = () => {
 	const confirmDeleteHandler = (setID) => {
 		try {
 			deleteLearningSet(setID, currentUser.uid);
-			dispatch(
-				setCurrentNotification({ message: 'Set deleted successfully', severity: 'success' })
-			);
+			dispatch(setNotificationAsync({ message: 'Set deleted successfully', severity: 'success' }));
 			SetSets([...sets].filter((set) => set.id !== setID));
 		} catch (e) {
-			dispatch(setCurrentNotification({ message: 'Failed to delete set', severity: 'error' }));
+			dispatch(setNotificationAsync({ message: 'Failed to delete set', severity: 'error' }));
 		}
 		closeDeleteHandler();
 	};
