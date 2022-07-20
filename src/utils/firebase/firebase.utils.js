@@ -21,6 +21,7 @@ import {
 	query,
 	limit,
 	orderBy,
+	updateDoc,
 } from 'firebase/firestore';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -86,6 +87,15 @@ export const addLearningSet = async (set, userID) => {
 	}
 	const setRef = doc(firestore, `user/${userID}/sets/${set.id}`);
 	await setDoc(setRef, set);
+};
+
+export const updateLearningSet = async (setID, userID, updatedContent) => {
+	if (!setID || !userID || !updatedContent) return;
+	const setRef = doc(firestore, `user/${userID}/sets/${setID}`);
+	const setPublicRef = doc(firestore, `public_sets/${setID}`);
+	const docSnapshot = await getDoc(setPublicRef);
+	if (docSnapshot.exists()) await updateDoc(setPublicRef, updatedContent);
+	await updateDoc(setRef, updatedContent);
 };
 
 export const fetchLearningSet = async (setID, userID) => {

@@ -16,7 +16,11 @@ import { MaterialUISwitch } from './CreatePage.styles';
 
 import { v1 as uuidv1 } from 'uuid';
 
-import { addLearningSet, fetchLearningSet } from '../../utils/firebase/firebase.utils';
+import {
+	addLearningSet,
+	fetchLearningSet,
+	updateLearningSet,
+} from '../../utils/firebase/firebase.utils';
 import { setNotificationAsync } from '../../redux/notification/notification.action';
 
 const reorder = (list, startIndex, endIndex) => {
@@ -111,18 +115,31 @@ const CreatePage = () => {
 			try {
 				setLoading(true);
 				dispatch(setNotificationAsync({ message: 'Creating set...', severity: 'info' }));
-				await addLearningSet(
-					{
-						id: id || uuidv1(),
-						content: cards,
-						tags,
-						privacy,
-						title,
-						created: Date.now(),
-						user: currentUser.uid,
-					},
-					currentUser.uid
-				);
+				id
+					? await updateLearningSet(id, currentUser.uid, {
+							content: cards,
+							tags,
+							privacy,
+							title,
+							updated: Date.now(),
+					  })
+					: await addLearningSet(
+							{
+								id: uuidv1(),
+								content: cards,
+								tags,
+								privacy,
+								title,
+								updated: Date.now(),
+								created: Date.now(),
+								user: currentUser.uid,
+								ratings: {
+									stars: null,
+									rated: [],
+								},
+							},
+							currentUser.uid
+					  );
 				setLoading(false);
 				dispatch(
 					setNotificationAsync({ message: 'Set created successfully', severity: 'success' })

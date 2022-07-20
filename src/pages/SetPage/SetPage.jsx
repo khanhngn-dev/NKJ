@@ -96,20 +96,16 @@ const SetPage = () => {
 		setSortBy(e.target.value);
 	};
 
-	const fetchMoreSetsHandler = async () => {
+	const fetchMorePublicSetsHandler = async () => {
 		setLoading(true);
 		setFetchLength(fetchLength + 1);
-		const response = await fetchAllLearningSets(
-			currentUser.uid,
-			(fetchLength + 1) * DEFAULT_MAX_SET
-		);
+		const response = await fetchAllPublicLearningSets((fetchLength + 1) * DEFAULT_MAX_SET);
 		if (!response) {
 			setLoading(false);
 			return;
 		}
-		setSets(response);
-		setLoading(false);
-	};
+		setPublicSets(response);
+		setLoading(false);	};
 
 	useEffect(() => {
 		fetchSetsAsync(currentUser?.uid);
@@ -221,6 +217,27 @@ const SetPage = () => {
 								</Grid>
 							))
 						)}
+						<Grid
+							item
+							xs={12}
+							style={{
+								display: 'flex',
+								justifyContent: 'center',
+								alignItems: 'center',
+								cursor: 'pointer',
+							}}
+							onClick={fetchMorePublicSetsHandler}
+						>
+							<Divider flexItem>
+								<Typography color='primary' variant='body1'>
+									{loading ? (
+										<SpinnerContainer style={{ width: '30px', height: '30px' }} as='span' />
+									) : (
+										'Fetch more sets'
+									)}
+								</Typography>
+							</Divider>
+						</Grid>
 					</Grid>
 					{currentUser ? (
 						<>
@@ -261,27 +278,6 @@ const SetPage = () => {
 										</Grid>
 									))
 								)}
-								<Grid
-									item
-									xs={12}
-									style={{
-										display: 'flex',
-										justifyContent: 'center',
-										alignItems: 'center',
-										cursor: 'pointer',
-									}}
-									onClick={fetchMoreSetsHandler}
-								>
-									<Divider flexItem>
-										<Typography color='primary' variant='body1'>
-											{loading ? (
-												<SpinnerContainer style={{ width: '30px', height: '30px' }} as='span' />
-											) : (
-												'Fetch more sets'
-											)}
-										</Typography>
-									</Divider>
-								</Grid>
 							</Grid>
 						</>
 					) : (

@@ -1,12 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, generatePath } from 'react-router';
-import { Card, Typography, Button, Stack, Skeleton } from '@mui/material';
+import { useDispatch, useSelector } from 'react-redux';
+import { Card, Typography, Button, Stack, Skeleton, Rating } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import StarIcon from '@mui/icons-material/Star';
-import StarBorderIcon from '@mui/icons-material/StarBorder';
+// import StarIcon from '@mui/icons-material/Star';
+// import StarBorderIcon from '@mui/icons-material/StarBorder';
 
 import { timeConverter } from '../../utils/date/date';
+import { updateLearningSet } from '../../utils/firebase/firebase.utils';
+import { setNotificationAsync } from '../../redux/notification/notification.action';
 
 const MAX_TAG_LENGTH = window.innerWidth / 3.5;
 
@@ -14,12 +17,7 @@ export const SkeletonSummary = ({ editable }) => (
 	<Card
 		sx={{
 			padding: '20px',
-			height: '200px',
 			boxShadow: 2,
-			transition: 'all .25s ease-in-out',
-			'&:hover': {
-				transform: 'scale(1.05)',
-			},
 		}}
 	>
 		<Stack
@@ -37,12 +35,12 @@ export const SkeletonSummary = ({ editable }) => (
 					<Skeleton />
 				</Typography>
 				<Stack direction='row' flexWrap='wrap' alignItems='center' sx={{ gap: '5px' }}>
-					{[...new Array(6)].map((_, index) => (
+					{[...new Array(3)].map((_, index) => (
 						<Skeleton
 							key={index}
 							variant='rectangular'
 							width={50}
-							height={30}
+							height={36.5}
 							sx={{ margin: '5px 0', marginLeft: 0, minWidth: '50px', flex: 1 }}
 						/>
 					))}
@@ -53,6 +51,7 @@ export const SkeletonSummary = ({ editable }) => (
 				<Typography variant='body1' color='primary'>
 					<Skeleton />
 				</Typography>
+				<Rating disabled size='large' />
 			</div>
 			{editable && (
 				<Stack
@@ -74,32 +73,43 @@ export const SkeletonSummary = ({ editable }) => (
 	</Card>
 );
 
-const SetSummary = ({ set, deleteSetHandler, editable, edit }) => {
+const SetSummary = ({ set, deleteSetHandler, editable }) => {
+	const currentUser = useSelector((state) => state.user.currentUser);
 	const tagsRef = useRef();
 	const navigate = useNavigate();
-	const { id, title, tags, content, created } = set;
+	const dispatch = useDispatch();
+	const { id, title, tags, content, created, ratings, user } = set;
+	const { stars, rated } = ratings;
 	const time = timeConverter(created);
 	const [maxTags, setMaxTags] = useState(tags.length || 0);
-	const [stars, setStars] = useState(-1);
-	const [selected, setSelected] = useState(-1);
+	const [ratingStars, setRatingStars] = useState(stars || null);
 
-	const starHoverHandler = (index) => {
-		setStars(index);
-	};
-
-	const starLeaveHandler = () => {
-		setStars(selected);
-	};
-
-	const starClickHandler = (index) => {
-		if (selected === index) {
-			setSelected(-1);
-			return;
-		}
+	const starClickHandler = async (index) => {
 		try {
-			setStars(index);
-			setSelected(index);
-		} catch (e) {}
+			const avgStar = (stars * rated.length + index) / (rated.length + 1);
+			const alreadyRated = rated?.some((user) => user === currentUser.uid);
+			updateLearningSet(id, user, {
+				ratings: {
+					stars: avgStar,
+					rated: alreadyRated ? rated : [...rated, currentUser.uid],
+				},
+			});
+			setRatingStars(avgStar);
+			dispatch(
+				setNotificationAsync({
+					message: 'Updated ratings',
+					severity: 'success',
+				})
+			);
+		} catch (e) {
+			console.log(e);
+			dispatch(
+				setNotificationAsync({
+					message: 'Failed to update ratings',
+					severity: 'error',
+				})
+			);
+		}
 	};
 
 	useEffect(() => {
@@ -116,7 +126,6 @@ const SetSummary = ({ set, deleteSetHandler, editable, edit }) => {
 					transform: 'scale(1.05)',
 				},
 			}}
-			onMouseLeave={starLeaveHandler}
 		>
 			<Stack
 				direction='row'
@@ -176,37 +185,16 @@ const SetSummary = ({ set, deleteSetHandler, editable, edit }) => {
 					<Typography variant='body1' color='primary'>
 						Created on: {time}
 					</Typography>
-					<Stack
-						direction='row'
-						justifyContent='flex-start'
-						alignItems='center'
-						gap={2}
-						sx={{ marginTop: '5px' }}
-					>
-						{[...new Array(5)].map((_, index) =>
-							index <= stars ? (
-								<StarIcon
-									key={index}
-									onMouseEnter={() => starHoverHandler(index)}
-									onClick={() => starClickHandler(index)}
-									sx={{
-										color: '#fcd649',
-										cursor: 'pointer',
-									}}
-								/>
-							) : (
-								<StarBorderIcon
-									key={index}
-									onMouseEnter={() => starHoverHandler(index)}
-									onClick={() => starClickHandler(index)}
-									sx={{
-										color: '#fcd649',
-										cursor: 'pointer',
-									}}
-								/>
-							)
-						)}
-					</Stack>
+					<Rating
+						name='ratings'
+						value={ratingStars}
+						onChange={(event, newValue) => {
+							starClickHandler(newValue);
+						}}
+						disabled={editable || !currentUser}
+						precision={0.5}
+						size='large'
+					/>
 				</div>
 				{editable && (
 					<Stack
