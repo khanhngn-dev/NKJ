@@ -16,6 +16,7 @@ import {
 	Chip,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import SetSummary, { SkeletonSummary } from '../../components/SetSummary/SetSummary.component';
 
 import {
@@ -33,12 +34,20 @@ const sortByList = [
 		sort: (a, b) => a.created - b.created,
 	},
 	{
+		text: 'Updated Time',
+		sort: (a, b) => a.updated - b.updated,
+	},
+	{
 		text: 'Content Length',
 		sort: (a, b) => a.content.length - b.content.length,
 	},
 	{
 		text: 'Title',
 		sort: (a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }),
+	},
+	{
+		text: 'Rating',
+		sort: (a, b) => a.ratings.stars - b.ratings.stars,
 	},
 ];
 
@@ -54,6 +63,7 @@ const SetPage = () => {
 	const [searchTerm, setSearchTerm] = useState('');
 	const [deleteID, setDeleteID] = useState('');
 	const [loading, setLoading] = useState(true);
+	const [sortAsc, setSortAsc] = useState(true);
 	const currentUser = useSelector((state) => state.user.currentUser);
 
 	const deleteSetHandler = (setID) => {
@@ -105,7 +115,14 @@ const SetPage = () => {
 			return;
 		}
 		setPublicSets(response);
-		setLoading(false);	};
+		setLoading(false);
+	};
+
+	const sortDirectionHandler = () => {
+		setSortAsc(!sortAsc);
+		setFilteredPublicSets([...filteredPublicSets].reverse());
+		setFilteredSets([...filteredSets].reverse());
+	};
 
 	useEffect(() => {
 		fetchSetsAsync(currentUser?.uid);
@@ -169,6 +186,19 @@ const SetPage = () => {
 							</MenuItem>
 						))}
 					</TextField>
+					<Button
+						sx={{
+							minWidth: '56px',
+							borderRadius: '50%',
+							transform: `rotate(${sortAsc ? 0 : 180}deg)`,
+							transition: 'all 0.25s ease-in-out',
+						}}
+						color='primary'
+						variant='outlined'
+						onClick={sortDirectionHandler}
+					>
+						<ArrowUpwardIcon size='large' />
+					</Button>
 				</Stack>
 				<div
 					style={{

@@ -4,14 +4,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Card, Typography, Button, Stack, Skeleton, Rating } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-// import StarIcon from '@mui/icons-material/Star';
-// import StarBorderIcon from '@mui/icons-material/StarBorder';
 
 import { timeConverter } from '../../utils/date/date';
 import { updateLearningSet } from '../../utils/firebase/firebase.utils';
 import { setNotificationAsync } from '../../redux/notification/notification.action';
-
-const MAX_TAG_LENGTH = window.innerWidth / 3.5;
 
 export const SkeletonSummary = ({ editable }) => (
 	<Card
@@ -74,6 +70,7 @@ export const SkeletonSummary = ({ editable }) => (
 );
 
 const SetSummary = ({ set, deleteSetHandler, editable }) => {
+	const MAX_TAG_LENGTH = window.innerWidth / 3.5;
 	const currentUser = useSelector((state) => state.user.currentUser);
 	const tagsRef = useRef();
 	const navigate = useNavigate();
@@ -114,7 +111,7 @@ const SetSummary = ({ set, deleteSetHandler, editable }) => {
 
 	useEffect(() => {
 		if (tagsRef?.current?.clientWidth > MAX_TAG_LENGTH) setMaxTags(maxTags - 1);
-	}, [maxTags]);
+	}, [maxTags, MAX_TAG_LENGTH]);
 
 	return (
 		<Card
