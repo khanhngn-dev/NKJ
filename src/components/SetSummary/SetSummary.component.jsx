@@ -3,6 +3,8 @@ import { useNavigate, generatePath } from 'react-router';
 import { Card, Typography, Button, Stack, Skeleton } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import StarIcon from '@mui/icons-material/Star';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
 
 import { timeConverter } from '../../utils/date/date';
 
@@ -78,6 +80,27 @@ const SetSummary = ({ set, deleteSetHandler, editable, edit }) => {
 	const { id, title, tags, content, created } = set;
 	const time = timeConverter(created);
 	const [maxTags, setMaxTags] = useState(tags.length || 0);
+	const [stars, setStars] = useState(-1);
+	const [selected, setSelected] = useState(-1);
+
+	const starHoverHandler = (index) => {
+		setStars(index);
+	};
+
+	const starLeaveHandler = () => {
+		setStars(selected);
+	};
+
+	const starClickHandler = (index) => {
+		if (selected === index) {
+			setSelected(-1);
+			return;
+		}
+		try {
+			setStars(index);
+			setSelected(index);
+		} catch (e) {}
+	};
 
 	useEffect(() => {
 		if (tagsRef?.current?.clientWidth > MAX_TAG_LENGTH) setMaxTags(maxTags - 1);
@@ -87,13 +110,13 @@ const SetSummary = ({ set, deleteSetHandler, editable, edit }) => {
 		<Card
 			sx={{
 				padding: '20px',
-				height: '200px',
 				boxShadow: 2,
 				transition: 'all .25s ease-in-out',
 				'&:hover': {
 					transform: 'scale(1.05)',
 				},
 			}}
+			onMouseLeave={starLeaveHandler}
 		>
 			<Stack
 				direction='row'
@@ -153,6 +176,37 @@ const SetSummary = ({ set, deleteSetHandler, editable, edit }) => {
 					<Typography variant='body1' color='primary'>
 						Created on: {time}
 					</Typography>
+					<Stack
+						direction='row'
+						justifyContent='flex-start'
+						alignItems='center'
+						gap={2}
+						sx={{ marginTop: '5px' }}
+					>
+						{[...new Array(5)].map((_, index) =>
+							index <= stars ? (
+								<StarIcon
+									key={index}
+									onMouseEnter={() => starHoverHandler(index)}
+									onClick={() => starClickHandler(index)}
+									sx={{
+										color: '#fcd649',
+										cursor: 'pointer',
+									}}
+								/>
+							) : (
+								<StarBorderIcon
+									key={index}
+									onMouseEnter={() => starHoverHandler(index)}
+									onClick={() => starClickHandler(index)}
+									sx={{
+										color: '#fcd649',
+										cursor: 'pointer',
+									}}
+								/>
+							)
+						)}
+					</Stack>
 				</div>
 				{editable && (
 					<Stack
