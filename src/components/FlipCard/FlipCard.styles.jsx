@@ -1,5 +1,4 @@
 import styled from '@emotion/styled';
-
 export const FlipCardContainer = styled.div`
 	width: 300px;
 	height: 400px;

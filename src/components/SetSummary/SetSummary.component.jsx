@@ -24,7 +24,10 @@ export const SkeletonSummary = ({ editable }) => (
 			spacing={2}
 		>
 			<div style={{ width: '100%' }}>
-				<Typography variant='h6' color='primary' sx={{ cursor: 'pointer' }}>
+				<Typography variant='h5' color='primary' sx={{ cursor: 'pointer' }}>
+					<Skeleton />
+				</Typography>
+				<Typography variant='body1' color='primary'>
 					<Skeleton />
 				</Typography>
 				<Typography variant='body1'>
@@ -69,29 +72,32 @@ export const SkeletonSummary = ({ editable }) => (
 	</Card>
 );
 
+const MAX_TAG_LENGTH = window.innerWidth < 1024 ? window.innerWidth / 1.5 : window.innerWidth / 3.5;
+
 const SetSummary = ({ set, deleteSetHandler, editable }) => {
-	const MAX_TAG_LENGTH = window.innerWidth / 3.5;
 	const currentUser = useSelector((state) => state.user.currentUser);
 	const tagsRef = useRef();
 	const navigate = useNavigate();
 	const dispatch = useDispatch();
-	const { id, title, tags, content, created, ratings, user } = set;
-	const { stars, rated } = ratings;
-	const time = timeConverter(created);
+	const { id, title, tags, content, updated, ratings, user } = set;
+	const { uid, displayName } = user;
+	const { avgStars, rated } = ratings;
+	const time = timeConverter(updated);
 	const [maxTags, setMaxTags] = useState(tags.length || 0);
-	const [ratingStars, setRatingStars] = useState(stars || null);
+	const [ratingStars, setRatingStars] = useState(rated[currentUser?.uid] || -1);
 
 	const starClickHandler = async (index) => {
 		try {
-			const avgStar = (stars * rated.length + index) / (rated.length + 1);
-			const alreadyRated = rated?.some((user) => user === currentUser.uid);
-			updateLearningSet(id, user, {
+			const len = Object.keys(rated).length || 1;
+			const diff = rated[currentUser?.uid] || 0;
+			const avg = (avgStars * len - diff + index) / len;
+			updateLearningSet(id, uid, {
 				ratings: {
-					stars: avgStar,
-					rated: alreadyRated ? rated : [...rated, currentUser.uid],
+					avgStars: avg,
+					rated: { ...rated, [currentUser.uid]: index },
 				},
 			});
-			setRatingStars(avgStar);
+			setRatingStars(index);
 			dispatch(
 				setNotificationAsync({
 					message: 'Updated ratings',
@@ -111,7 +117,7 @@ const SetSummary = ({ set, deleteSetHandler, editable }) => {
 
 	useEffect(() => {
 		if (tagsRef?.current?.clientWidth > MAX_TAG_LENGTH) setMaxTags(maxTags - 1);
-	}, [maxTags, MAX_TAG_LENGTH]);
+	}, [maxTags]);
 
 	return (
 		<Card
@@ -125,15 +131,14 @@ const SetSummary = ({ set, deleteSetHandler, editable }) => {
 			}}
 		>
 			<Stack
-				direction='row'
 				justifyContent='space-between'
 				alignItems='flex-start'
-				sx={{ width: '100%', height: '100%', flex: 1 }}
-				spacing={2}
+				sx={{ width: '100%', height: '100%', flex: 1, flexFlow: { xs: 'column', sm: 'row' } }}
+				gap={2}
 			>
 				<div>
 					<Typography
-						variant='h6'
+						variant='h5'
 						color='primary'
 						sx={{ cursor: 'pointer' }}
 						onClick={() => {
@@ -146,6 +151,19 @@ const SetSummary = ({ set, deleteSetHandler, editable }) => {
 						}}
 					>
 						{title}
+					</Typography>
+					<Typography
+						variant='body1'
+						sx={{ cursor: 'pointer' }}
+						onClick={() =>
+							navigate(
+								generatePath('/profile/:uid', {
+									uid,
+								})
+							)
+						}
+					>
+						By: <span style={{ color: 'var(--primary-color)' }}>{displayName}</span>
 					</Typography>
 					{tags.length !== 0 && (
 						<div>
@@ -178,28 +196,37 @@ const SetSummary = ({ set, deleteSetHandler, editable }) => {
 							</Stack>
 						</div>
 					)}
-					<Typography variant='body1'>Total number of items: {content.length}</Typography>
-					<Typography variant='body1' color='primary'>
-						Created on: {time}
-					</Typography>
-					<Rating
-						name='ratings'
-						value={ratingStars}
-						onChange={(event, newValue) => {
-							starClickHandler(newValue);
-						}}
-						disabled={editable || !currentUser}
-						precision={0.5}
-						size='large'
-					/>
+					<Typography variant='body1'>Number of items: {content.length}</Typography>
+					<Typography variant='body1'>Updated on: {time}</Typography>
+
+					<Stack direction='row' justifyContent='center' alignItems='center' gap={2}>
+						<Rating
+							name='ratings'
+							value={editable ? avgStars : ratingStars}
+							onChange={(event, newValue) => {
+								starClickHandler(newValue);
+							}}
+							disabled={editable || !currentUser}
+							precision={0.5}
+							size='large'
+						/>
+						<Typography variant='h6' color='primary'>
+							{avgStars < 0 ? 0 : avgStars.toFixed(1)}
+						</Typography>
+					</Stack>
 				</div>
 				{editable && (
 					<Stack
-						direction='column'
 						justifyContent='center'
 						alignItems='center'
-						sx={{ alignSelf: 'center' }}
-						spacing={2}
+						sx={{
+							alignSelf: 'center',
+							flexFlow: {
+								xs: 'row',
+								sm: 'column',
+							},
+						}}
+						gap={2}
 					>
 						<Button
 							variant='contained'

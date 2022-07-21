@@ -1,5 +1,4 @@
 import styled from '@emotion/styled';
-
 export const SpinnerOverlay = styled.div`
 	position: fixed;
 	top: 50%;

@@ -1,47 +1,53 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useNavigate, useParams, generatePath } from 'react-router';
 import { useSelector, useDispatch } from 'react-redux';
 import { setNotificationAsync } from '../../redux/notification/notification.action';
 
 import {
+	Avatar,
+	Typography,
+	Stack,
+	Badge,
+	Grid,
 	Button,
 	Modal,
-	Grid,
-	Box,
-	Typography,
-	TextField,
-	Stack,
-	MenuItem,
-	InputAdornment,
+	Divider,
+	Chip,
 } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
-import SetSummary from '../../components/SetSummary/SetSummary.component';
-
-import { deleteLearningSet, fetchAllLearningSets } from '../../utils/firebase/firebase.utils';
+import CameraAltIcon from '@mui/icons-material/CameraAlt';
+import { deleteLearningSet, fetchMostPopularSets } from '../../utils/firebase/firebase.utils';
+import SetSummary, { SkeletonSummary } from '../../components/SetSummary/SetSummary.component';
 import CenterModal from '../../components/CenterModal/CenterModal.component';
-
-const sortByList = [
-	{
-		text: 'Created Time',
-		sort: (a, b) => a.created - b.created,
-	},
-	{
-		text: 'Content Length',
-		sort: (a, b) => a.content.length - b.content.length,
-	},
-	{
-		text: 'Title',
-		sort: (a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }),
-	},
-];
 
 const ProfilePage = () => {
 	const dispatch = useDispatch();
-	const [sets, SetSets] = useState([]);
-	const [filteredSets, setFilteredSets] = useState(sets);
-	const [sortBy, setSortBy] = useState(0);
-	const [searchTerm, setSearchTerm] = useState('');
-	const [deleteID, setDeleteID] = useState('');
+	const navigate = useNavigate();
+	const { id } = useParams();
 	const currentUser = useSelector((state) => state.user.currentUser);
+	const [popularSet, setPopularSet] = useState([]);
+	const [loading, setLoading] = useState(true);
+	const [deleteID, setDeleteID] = useState('');
+
+	const fetchPopularSetsAsync = useCallback(async () => {
+		try {
+			const response = id
+				? await fetchMostPopularSets(id)
+				: await fetchMostPopularSets(currentUser.uid);
+			if (!response) {
+				setLoading(false);
+				return;
+			}
+			setPopularSet(response);
+			setLoading(false);
+		} catch (e) {
+			console.log(e);
+			setLoading(false);
+			dispatch(
+				setNotificationAsync({ message: 'Failed to fetch most popular sets', severity: 'error' })
+			);
+		}
+		// eslint-disable-next-line
+	}, []);
 
 	const deleteSetHandler = (setID) => {
 		setDeleteID(setID);
@@ -55,89 +61,110 @@ const ProfilePage = () => {
 		try {
 			deleteLearningSet(setID, currentUser.uid);
 			dispatch(setNotificationAsync({ message: 'Set deleted successfully', severity: 'success' }));
-			SetSets([...sets].filter((set) => set.id !== setID));
+			setLoading(true);
+			fetchPopularSetsAsync(currentUser.uid);
 		} catch (e) {
 			dispatch(setNotificationAsync({ message: 'Failed to delete set', severity: 'error' }));
 		}
 		closeDeleteHandler();
 	};
 
-	const fetchSetsAsync = useCallback(async (userID) => {
-		const response = await fetchAllLearningSets(userID);
-		if (!response) return;
-		SetSets(response);
+	useEffect(() => {
+		fetchPopularSetsAsync();
+		// eslint-disable-next-line
 	}, []);
 
-	const searchHandler = (e) => {
-		setSearchTerm(e.target.value);
-	};
-
-	const sortByHandler = (e) => {
-		setSortBy(e.target.value);
-	};
-
-	useEffect(() => {
-		fetchSetsAsync(currentUser?.uid);
-		// eslint-disable-next-line
-	}, [currentUser]);
-
-	useEffect(() => {
-		const upperTerm = searchTerm.toUpperCase();
-		setFilteredSets(
-			sets
-				.filter(
-					(set) =>
-						set.title.toUpperCase().includes(upperTerm) ||
-						set.tags.some((tag) => tag.includes(upperTerm))
-				)
-				.sort((a, b) => sortByList[sortBy].sort(a, b))
-		);
-	}, [searchTerm, sets, sortBy]);
-
 	return (
-		<Stack
-			direction='column'
-			justifyContent='center'
-			alignItems='center'
-			sx={{ padding: '20px 40px' }}
-			spacing={4}
-		>
-			<Stack direction='row' justifyContent='center' spacing={4} sx={{ width: '100%' }}>
-				<TextField
-					label='Search Learning Sets'
-					value={searchTerm}
-					onChange={searchHandler}
-					InputProps={{
-						startAdornment: (
-							<InputAdornment position='start'>
-								<SearchIcon />
-							</InputAdornment>
-						),
+		<>
+			<Stack
+				sx={{
+					padding: '40px',
+					maxWidth: '1200px',
+					margin: 'auto',
+				}}
+			>
+				<Stack
+					sx={{
+						flexDirection: { xs: 'column', sm: 'row' },
+						padding: 4,
 					}}
-				/>
-				<TextField
-					select
-					value={sortBy}
-					onChange={sortByHandler}
-					label='Sort by'
-					sx={{ width: '20ch' }}
+					gap={4}
+					justifyContent='flex-start'
+					alignItems='center'
 				>
-					{sortByList.map((item, index) => (
-						<MenuItem value={index} key={index}>
-							{item.text}
-						</MenuItem>
-					))}
-				</TextField>
-			</Stack>
-			<Box sx={{ width: '100%', maxWidth: '1200px', margin: 'auto' }}>
+					<Badge
+						anchorOrigin={{
+							vertical: 'bottom',
+							horizontal: 'right',
+						}}
+						overlap='circular'
+						badgeContent={
+							<Avatar sx={{ bgcolor: 'var(--primary-color)', width: 50, height: 50 }}>
+								<CameraAltIcon />
+							</Avatar>
+						}
+					>
+						<Avatar
+							src='https://picsum.photos/seed/picsum/200'
+							sx={{
+								width: 200,
+								height: 200,
+								position: 'relative',
+								'&::before': {
+									display: 'none',
+									content: '""',
+									position: 'absolute',
+									top: 0,
+									left: 0,
+									width: '100%',
+									height: '100%',
+									backgroundColor: '#3434345a',
+								},
+								'&:hover::before': {
+									display: 'initial',
+								},
+							}}
+						/>
+					</Badge>
+					<Stack direction='column' gap={4} justifyContent='center' alignItems='center'>
+						<Typography variant='h4' color='primary'>
+							{currentUser.displayName || currentUser.email}
+						</Typography>
+					</Stack>
+				</Stack>
 				<Grid container direction='row' flexWrap='wrap' spacing={4}>
-					{filteredSets?.map((set) => (
-						<Grid item key={set.id} xs={6}>
-							<SetSummary key={set.id} set={set} deleteSetHandler={deleteSetHandler} />
+					{popularSet.length !== 0 && (
+						<Grid item xs={12}>
+							<Divider flexItem>
+								<Chip
+									color='primary'
+									sx={{ padding: 3 }}
+									label={
+										<Typography variant='h5' color='white'>
+											Highest rating sets
+										</Typography>
+									}
+								/>
+							</Divider>
 						</Grid>
-					))}
+					)}
+					{loading
+						? [...new Array(6)].map((_, index) => (
+								<Grid item xs={12} sm={6} key={index}>
+									<SkeletonSummary editable={false} />
+								</Grid>
+						  ))
+						: popularSet.map((set) => (
+								<Grid key={set.id} item xs={12} sm={6}>
+									<SetSummary
+										editable={currentUser !== null && currentUser?.uid === set.user.uid}
+										set={set}
+										deleteSetHandler={deleteSetHandler}
+									/>
+								</Grid>
+						  ))}
 				</Grid>
-			</Box>
+			</Stack>
 			<Modal open={Boolean(deleteID)} onClose={closeDeleteHandler}>
 				<CenterModal
 					style={{
@@ -171,7 +198,7 @@ const ProfilePage = () => {
 					</div>
 				</CenterModal>
 			</Modal>
-		</Stack>
+		</>
 	);
 };
 

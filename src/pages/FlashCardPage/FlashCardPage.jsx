@@ -100,15 +100,17 @@ const FlashCardPage = () => {
 	return (
 		<>
 			<Stack
-				direction='row'
 				justifyContent='center'
 				alignItems='center'
 				sx={{
 					margin: 'auto',
 					maxWidth: '1200px',
 					position: 'relative',
-					marginTop: '120px',
+					marginTop: { sm: '120px' },
+					padding: '40px',
+					flexFlow: { xs: 'column', sm: 'row' },
 				}}
+				gap={2}
 			>
 				<Stack
 					direction='column'
@@ -116,11 +118,14 @@ const FlashCardPage = () => {
 					alignItems='center'
 					sx={{
 						flex: 3,
-						padding: '20px',
 						height: '100%',
-						boxShadow: 1,
-						position: 'sticky',
-						alignSelf: 'flex-start',
+						padding: '20px',
+						width: { xs: '100%' },
+						boxShadow: { sm: 1 },
+						position: {
+							xs: 'relative',
+							sm: 'sticky',
+						},
 						top: 0,
 					}}
 					spacing={4}
@@ -171,7 +176,7 @@ const FlashCardPage = () => {
 							sx={{ height: '10px', borderRadius: '10px' }}
 						/>
 					</div>
-					{flashCard?.user === currentUser?.uid && (
+					{flashCard?.user.uid === currentUser?.uid && (
 						<Stack
 							direction='row'
 							justifyContent='center'
@@ -196,7 +201,7 @@ const FlashCardPage = () => {
 							</Button>
 						</Stack>
 					)}
-					<Typography variant='h6' color='primary' sx={{ width: '100%' }} textAlign='center'>
+					<Typography variant='body1' sx={{ width: '100%' }} textAlign='center'>
 						{loading ? <Skeleton /> : `Created: ${timeConverter(flashCard?.created)}`}
 					</Typography>
 				</Stack>

@@ -132,10 +132,13 @@ const CreatePage = () => {
 								title,
 								updated: Date.now(),
 								created: Date.now(),
-								user: currentUser.uid,
+								user: {
+									uid: currentUser.uid,
+									displayName: currentUser.displayName || currentUser.email,
+								},
 								ratings: {
-									stars: null,
-									rated: [],
+									avgStars: -1,
+									rated: {},
 								},
 							},
 							currentUser.uid

@@ -157,10 +157,15 @@ const SetPage = () => {
 				direction='column'
 				justifyContent='center'
 				alignItems='center'
-				sx={{ padding: '20px 40px', maxWidth: '1200px', margin: 'auto' }}
+				sx={{ padding: '40px', maxWidth: '1200px', margin: 'auto' }}
 				spacing={4}
 			>
-				<Stack direction='row' justifyContent='center' spacing={4} sx={{ width: '100%' }}>
+				<Stack
+					justifyContent='center'
+					alignItems='center'
+					gap={4}
+					sx={{ width: '100%', flexFlow: { xs: 'column', sm: 'row' } }}
+				>
 					<TextField
 						label='Search Learning Sets'
 						value={searchTerm}
@@ -189,6 +194,7 @@ const SetPage = () => {
 					<Button
 						sx={{
 							minWidth: '56px',
+							minHeight: '56px',
 							borderRadius: '50%',
 							transform: `rotate(${sortAsc ? 0 : 180}deg)`,
 							transition: 'all 0.25s ease-in-out',
@@ -224,50 +230,52 @@ const SetPage = () => {
 					<Grid container direction='row' flexWrap='wrap' spacing={4}>
 						{loading ? (
 							[...new Array(6)].map((_, index) => (
-								<Grid item key={index} xs={6}>
+								<Grid item key={index} xs={12} sm={6}>
 									<SkeletonSummary editable={false} />
 								</Grid>
 							))
 						) : filteredPublicSets.length === 0 ? (
 							<Grid item xs={12}>
-								<Typography variant='h5' color='primary'>
+								<Typography variant='h5' color='primary' textAlign='center'>
 									Empty
 								</Typography>
 							</Grid>
 						) : (
-							filteredPublicSets?.map((set, index) => (
-								<Grid item key={set.id || index} xs={6}>
-									<SetSummary
-										editable={currentUser !== null && currentUser?.uid === set.user}
-										key={set.id}
-										set={set}
-										loading={loading}
-										deleteSetHandler={deleteSetHandler}
-									/>
+							<>
+								{filteredPublicSets?.map((set, index) => (
+									<Grid item key={set.id || index} xs={12} sm={6}>
+										<SetSummary
+											editable={currentUser !== null && currentUser?.uid === set.user.uid}
+											key={set.id}
+											set={set}
+											loading={loading}
+											deleteSetHandler={deleteSetHandler}
+										/>
+									</Grid>
+								))}
+								<Grid
+									item
+									xs={12}
+									style={{
+										display: 'flex',
+										justifyContent: 'center',
+										alignItems: 'center',
+										cursor: 'pointer',
+									}}
+									onClick={fetchMorePublicSetsHandler}
+								>
+									<Divider flexItem>
+										<Typography color='primary' variant='body1'>
+											{loading ? (
+												<SpinnerContainer style={{ width: '30px', height: '30px' }} as='span' />
+											) : (
+												'Fetch more sets'
+											)}
+										</Typography>
+									</Divider>
 								</Grid>
-							))
+							</>
 						)}
-						<Grid
-							item
-							xs={12}
-							style={{
-								display: 'flex',
-								justifyContent: 'center',
-								alignItems: 'center',
-								cursor: 'pointer',
-							}}
-							onClick={fetchMorePublicSetsHandler}
-						>
-							<Divider flexItem>
-								<Typography color='primary' variant='body1'>
-									{loading ? (
-										<SpinnerContainer style={{ width: '30px', height: '30px' }} as='span' />
-									) : (
-										'Fetch more sets'
-									)}
-								</Typography>
-							</Divider>
-						</Grid>
 					</Grid>
 					{currentUser ? (
 						<>
@@ -285,21 +293,21 @@ const SetPage = () => {
 							<Grid container direction='row' flexWrap='wrap' spacing={4}>
 								{loading ? (
 									[...new Array(6)].map((_, index) => (
-										<Grid item key={index} xs={6}>
+										<Grid item key={index} xs={12} sm={6}>
 											<SkeletonSummary editable={true} />
 										</Grid>
 									))
 								) : filteredSets.length === 0 ? (
 									<Grid item xs={12}>
-										<Typography variant='h5' color='primary'>
+										<Typography variant='h5' color='primary' textAlign='center'>
 											Empty
 										</Typography>
 									</Grid>
 								) : (
 									filteredSets?.map((set, index) => (
-										<Grid item key={set.id || index} xs={6}>
+										<Grid item key={set.id || index} xs={12} sm={6}>
 											<SetSummary
-												editable={currentUser !== null && currentUser?.uid === set.user}
+												editable={currentUser !== null && currentUser?.uid === set.user.uid}
 												key={set.id}
 												set={set}
 												loading={loading}

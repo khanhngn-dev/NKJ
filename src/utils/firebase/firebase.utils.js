@@ -22,6 +22,7 @@ import {
 	limit,
 	orderBy,
 	updateDoc,
+	where,
 } from 'firebase/firestore';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -137,4 +138,13 @@ export const deleteLearningSet = async (setID, userID) => {
 	const setRefPublic = doc(firestore, `public_sets/${setID}`);
 	await deleteDoc(setRefPublic);
 	await deleteDoc(setRef);
+};
+
+export const fetchMostPopularSets = async (userID) => {
+	if (!userID) return;
+	const setsRef = collection(firestore, `user/${userID}/sets`);
+	const q = query(setsRef, where('privacy', '==', true));
+	const sq = query(q, orderBy('ratings.avgStars', 'desc'), limit(6));
+	const setsSnapshot = await getDocs(sq);
+	if (!setsSnapshot.empty) return setsSnapshot.docs.map((doc) => doc.data());
 };

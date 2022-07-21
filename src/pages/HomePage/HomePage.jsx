@@ -16,16 +16,25 @@ const HomePage = () => {
 	const navigate = useNavigate();
 	return (
 		<Stack
-			direction='row'
 			justifyContent='space-between'
-			spacing={2}
+			gap={2}
 			alignItems='center'
-			sx={{ maxWidth: '1024px', margin: 'auto', padding: '60px' }}
+			sx={{
+				maxWidth: '1024px',
+				margin: 'auto',
+				padding: '60px',
+				flexFlow: { xs: 'column', sm: 'row' },
+			}}
 		>
 			<Stack
-				direction='column'
-				spacing={5}
-				sx={{ width: '25%', height: '50vw', maxHeight: '600px' }}
+				gap={5}
+				sx={{
+					width: { xs: '100%', sm: '25%' },
+					height: { sm: '50vw' },
+					maxHeight: { sm: '600px' },
+					flexDirection: { xs: 'row', sm: 'column' },
+					flexWrap: 'wrap',
+				}}
 				justifyContent={currentUser ? 'center' : 'flex-end'}
 			>
 				{currentUser ? (

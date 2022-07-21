@@ -28,7 +28,7 @@ const AppRouter = () => {
 			<Navigation />
 			<Outlet />
 			{message && (
-				<Toastr severity={severity} timeToLive={5} removeHandler={removeNotification}>
+				<Toastr severity={severity} timeToLive={3} removeHandler={removeNotification}>
 					{message}
 				</Toastr>
 			)}
