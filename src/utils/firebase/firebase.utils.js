@@ -23,7 +23,9 @@ import {
 	orderBy,
 	updateDoc,
 	where,
+	writeBatch,
 } from 'firebase/firestore';
+import { batch } from 'react-redux';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -79,24 +81,43 @@ export const signOutUser = async () => {
 
 export const addLearningSet = async (set, userID) => {
 	if (!set.id || !userID) return;
+	const batch = writeBatch(firestore);
 	const setRefPublic = doc(firestore, `public_sets/${set.id}`);
 	if (set.privacy) {
-		await setDoc(setRefPublic, set);
+		batch.set(setRefPublic, set);
+		// await setDoc(setRefPublic, set);
 	} else {
-		const doc = await getDoc(setRefPublic);
-		if (doc.exists()) deleteDoc(setRefPublic);
+		// const doc = await getDoc(setRefPublic);
+		// if (doc.exists()) deleteDoc(setRefPublic);
+		batch.delete(setRefPublic);
 	}
 	const setRef = doc(firestore, `user/${userID}/sets/${set.id}`);
-	await setDoc(setRef, set);
+	// await setDoc(setRef, set);
+	batch.set(setRef, set);
+	batch.commit();
 };
 
 export const updateLearningSet = async (setID, userID, updatedContent) => {
 	if (!setID || !userID || !updatedContent) return;
+	const batch = writeBatch(firestore);
 	const setRef = doc(firestore, `user/${userID}/sets/${setID}`);
-	const setPublicRef = doc(firestore, `public_sets/${setID}`);
-	const docSnapshot = await getDoc(setPublicRef);
-	if (docSnapshot.exists()) await updateDoc(setPublicRef, updatedContent);
-	await updateDoc(setRef, updatedContent);
+	const setRefPublic = doc(firestore, `public_sets/${setID}`);
+	if (updatedContent.privacy) {
+		const docSnapshot = await getDoc(setRefPublic);
+		if (docSnapshot.exists()) {
+			// await updateDoc(setRefPublic, updatedContent);
+			batch.update(setRefPublic, updatedContent);
+		}
+	} else {
+		const doc = await getDoc(setRefPublic);
+		if (doc.exists()) {
+			// deleteDoc(setRefPublic);
+			batch.delete(setRefPublic);
+		}
+	}
+	// await updateDoc(setRef, updatedContent);
+	batch.update(setRef, updatedContent);
+	batch.commit();
 };
 
 export const fetchLearningSet = async (setID, userID) => {
@@ -136,8 +157,11 @@ export const deleteLearningSet = async (setID, userID) => {
 	if (!setID || !userID) return;
 	const setRef = doc(firestore, `user/${userID}/sets/${setID}`);
 	const setRefPublic = doc(firestore, `public_sets/${setID}`);
-	await deleteDoc(setRefPublic);
-	await deleteDoc(setRef);
+	// await deleteDoc(setRefPublic);
+	// await deleteDoc(setRef);
+	batch.delete(setRefPublic);
+	batch.delete(setRef);
+	batch.commit();
 };
 
 export const fetchMostPopularSets = async (userID) => {

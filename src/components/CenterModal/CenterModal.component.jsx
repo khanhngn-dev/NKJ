@@ -1,4 +1,5 @@
 import styled from '@emotion/styled';
+
 const CenterModal = styled.div`
 	position: absolute;
 	top: 50%;

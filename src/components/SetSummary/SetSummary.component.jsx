@@ -79,7 +79,7 @@ const SetSummary = ({ set, deleteSetHandler, editable }) => {
 	const tagsRef = useRef();
 	const navigate = useNavigate();
 	const dispatch = useDispatch();
-	const { id, title, tags, content, updated, ratings, user } = set;
+	const { id, title, tags, content, updated, ratings, user, privacy } = set;
 	const { uid, displayName } = user;
 	const { avgStars, rated } = ratings;
 	const time = timeConverter(updated);
@@ -88,10 +88,12 @@ const SetSummary = ({ set, deleteSetHandler, editable }) => {
 
 	const starClickHandler = async (index) => {
 		try {
-			const len = Object.keys(rated).length || 1;
+			const len = Object.keys(rated).length;
 			const diff = rated[currentUser?.uid] || 0;
-			const avg = (avgStars * len - diff + index) / len;
+			const deno = diff === 0 ? len + 1 : len;
+			const avg = (avgStars * len - diff + index) / deno;
 			updateLearningSet(id, uid, {
+				privacy,
 				ratings: {
 					avgStars: avg,
 					rated: { ...rated, [currentUser.uid]: index },

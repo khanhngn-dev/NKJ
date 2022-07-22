@@ -14,3 +14,7 @@
 body {
 	overflow-x: hidden;
 }
+
+.MuiInputBase-inputMultiline {
+	resize: vertical !important;
+}

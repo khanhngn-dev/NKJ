@@ -32,7 +32,9 @@ const ProfilePage = () => {
 		try {
 			const response = id
 				? await fetchMostPopularSets(id)
-				: await fetchMostPopularSets(currentUser.uid);
+				: currentUser
+				? await fetchMostPopularSets(currentUser.uid)
+				: navigate('/signup');
 			if (!response) {
 				setLoading(false);
 				return;

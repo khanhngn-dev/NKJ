@@ -140,6 +140,7 @@ const CreatePage = () => {
 									avgStars: -1,
 									rated: {},
 								},
+								comments: [],
 							},
 							currentUser.uid
 					  );

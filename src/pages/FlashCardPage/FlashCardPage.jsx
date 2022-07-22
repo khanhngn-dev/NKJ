@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams, generatePath } from 'react-router';
 import { useSelector, useDispatch } from 'react-redux';
 import {
 	deleteLearningSet,
 	fetchLearningSet,
 	fetchPublicLearningSet,
+	updateLearningSet,
 } from '../../utils/firebase/firebase.utils';
+import { uuidv4 } from '@firebase/util';
 import { Stack, LinearProgress, Typography, Button, Modal, Skeleton } from '@mui/material';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
@@ -16,6 +18,8 @@ import FlipCard from '../../components/FlipCard/FlipCard.component';
 import { timeConverter } from '../../utils/date/date';
 import { setNotificationAsync } from '../../redux/notification/notification.action';
 import CenterModal from '../../components/CenterModal/CenterModal.component';
+import Comments from '../../components/Comments/Comments.component';
+import CommentList from '../../components/CommentList/CommentList.component';
 
 const FlashCardPage = () => {
 	const { id, privacy } = useParams();
@@ -27,6 +31,11 @@ const FlashCardPage = () => {
 	const [showBack, setShowBack] = useState(false);
 	const [loading, setLoading] = useState(true);
 	const [deleteID, setDeleteID] = useState('');
+	const [content, setContent] = useState({
+		title: '',
+		comment: '',
+	});
+	const { title, comment } = content;
 
 	const deleteSetHandler = (setID) => {
 		setDeleteID(setID);
@@ -74,25 +83,81 @@ const FlashCardPage = () => {
 		}, 200);
 	};
 
-	useEffect(() => {
-		const fetchSetAsync = async () => {
-			if (privacy) {
-				const response = await fetchPublicLearningSet(id);
-				if (!response) {
-					setLoading(false);
-					return;
-				}
-				setFlashCard(response);
-			} else {
-				const response = await fetchLearningSet(id, currentUser?.uid);
-				if (!response) {
-					setLoading(false);
-					return;
-				}
-				setFlashCard(response);
+	const fetchSetAsync = useCallback(async () => {
+		if (privacy) {
+			const response = await fetchPublicLearningSet(id);
+			if (!response) {
+				setLoading(false);
+				navigate('/set');
+				return;
 			}
-			setLoading(false);
-		};
+			setFlashCard(response);
+		} else {
+			const response = await fetchLearningSet(id, currentUser?.uid);
+			if (!response) {
+				setLoading(false);
+				navigate('/set');
+				return;
+			}
+			setFlashCard(response);
+		}
+		setLoading(false);
+		// eslint-disable-next-line
+	}, [currentUser]);
+
+	const commentHandler = (e) => {
+		setContent({ ...content, [e.target.name]: e.target.value });
+	};
+
+	const submitHandler = async (e) => {
+		e.preventDefault();
+		try {
+			if (!title) {
+				dispatch(
+					setNotificationAsync({
+						message: 'Comment must have a title',
+						severity: 'warning',
+					})
+				);
+				return;
+			}
+			if (!comment) {
+				dispatch(
+					setNotificationAsync({
+						message: 'Comment cannot be empty',
+						severity: 'warning',
+					})
+				);
+				return;
+			}
+			await updateLearningSet(id, flashCard?.user?.uid, {
+				privacy,
+				comments: [
+					...flashCard.comments,
+					{
+						id: uuidv4(),
+						user: currentUser.displayName || currentUser.email,
+						uid: currentUser.uid,
+						title,
+						comment,
+						created: Date.now(),
+					},
+				],
+			});
+			setContent({ title: '', comment: '' });
+			fetchSetAsync();
+		} catch (e) {
+			console.log(e);
+			dispatch(
+				setNotificationAsync({
+					message: 'Failed to comment, please try again later',
+					severity: 'error',
+				})
+			);
+		}
+	};
+
+	useEffect(() => {
 		fetchSetAsync();
 		// eslint-disable-next-line
 	}, [currentUser]);
@@ -100,147 +165,170 @@ const FlashCardPage = () => {
 	return (
 		<>
 			<Stack
+				direction='column'
 				justifyContent='center'
 				alignItems='center'
+				gap={4}
 				sx={{
 					margin: 'auto',
 					maxWidth: '1200px',
 					position: 'relative',
 					marginTop: { sm: '120px' },
-					padding: '40px',
-					flexFlow: { xs: 'column', sm: 'row' },
+					padding: { xs: '40px', sm: '60px' },
 				}}
-				gap={2}
 			>
 				<Stack
-					direction='column'
-					justifyContent='center'
+					justifyContent='space-between'
 					alignItems='center'
 					sx={{
-						flex: 3,
-						height: '100%',
-						padding: '20px',
-						width: { xs: '100%' },
-						boxShadow: { sm: 1 },
-						position: {
-							xs: 'relative',
-							sm: 'sticky',
-						},
-						top: 0,
+						width: '100%',
+						flexFlow: { xs: 'column', sm: 'row' },
 					}}
-					spacing={4}
+					gap={2}
 				>
-					<Typography variant='h5' color='primary' sx={{ width: '100%' }} textAlign='center'>
-						{loading ? <Skeleton /> : flashCard?.title}
-					</Typography>
-					{loading ? (
-						<Stack direction='row' flexWrap='wrap' alignItems='center' sx={{ gap: '5px' }}>
-							{[...new Array(6)].map((_, index) => (
-								<Skeleton
-									key={index}
-									variant='rectangular'
-									width={50}
-									height={30}
-									sx={{ marginTop: '5px', marginLeft: 0, minWidth: '50px', flex: 1 }}
-								/>
-							))}
-						</Stack>
-					) : (
-						flashCard?.tags?.length !== 0 && (
-							<Stack direction='row' flexWrap='wrap' justifyContent='center' alignItems='center'>
-								{flashCard?.tags?.map((tag, index) => (
-									<Button key={index} variant='contained' sx={{ margin: '5px' }}>
-										{tag}
-									</Button>
+					<Stack
+						direction='column'
+						justifyContent='center'
+						alignItems='center'
+						sx={{
+							flex: 3,
+							height: '100%',
+							padding: '20px',
+							width: { xs: '100%' },
+							boxShadow: { sm: 1 },
+							position: {
+								xs: 'relative',
+							},
+							top: 0,
+						}}
+						spacing={4}
+					>
+						<Typography variant='h5' color='primary' sx={{ width: '100%' }} textAlign='center'>
+							{loading ? <Skeleton /> : flashCard?.title}
+						</Typography>
+						{loading ? (
+							<Stack direction='row' flexWrap='wrap' alignItems='center' sx={{ gap: '5px' }}>
+								{[...new Array(6)].map((_, index) => (
+									<Skeleton
+										key={index}
+										variant='rectangular'
+										width={50}
+										height={30}
+										sx={{ marginTop: '5px', marginLeft: 0, minWidth: '50px', flex: 1 }}
+									/>
 								))}
 							</Stack>
-						)
-					)}
-					<Typography
-						variant='h6'
-						color='primary'
-						style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}
-					>
-						<span>{currentCard + 1}</span>
-						<span> / </span>
-						{loading ? (
-							<Skeleton component='span' width='1.25rem' height={32} />
 						) : (
-							flashCard?.content?.length
+							flashCard?.tags?.length !== 0 && (
+								<Stack direction='row' flexWrap='wrap' justifyContent='center' alignItems='center'>
+									{flashCard?.tags?.map((tag, index) => (
+										<Button key={index} variant='contained' sx={{ margin: '5px' }}>
+											{tag}
+										</Button>
+									))}
+								</Stack>
+							)
 						)}
-					</Typography>
-					<div style={{ width: '100%' }}>
-						<LinearProgress
-							variant='determinate'
-							value={((currentCard + 1) / flashCard?.content?.length) * 100}
-							sx={{ height: '10px', borderRadius: '10px' }}
-						/>
-					</div>
-					{flashCard?.user.uid === currentUser?.uid && (
-						<Stack
-							direction='row'
-							justifyContent='center'
-							alignItems='center'
-							sx={{ alignSelf: 'center' }}
-							spacing={2}
+						<Typography
+							variant='h6'
+							color='primary'
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								gap: '5px',
+							}}
 						>
-							<Button
-								variant='contained'
-								onClick={() => {
-									navigate(
-										generatePath('/create/:id', {
-											id,
-										})
-									);
-								}}
+							<span>{currentCard + 1}</span>
+							<span> / </span>
+							{loading ? (
+								<Skeleton component='span' width='1.25rem' height={32} />
+							) : (
+								flashCard?.content?.length
+							)}
+						</Typography>
+						<div style={{ width: '100%' }}>
+							<LinearProgress
+								variant='determinate'
+								value={((currentCard + 1) / flashCard?.content?.length) * 100}
+								sx={{ height: '10px', borderRadius: '10px' }}
+							/>
+						</div>
+						{flashCard?.user?.uid === currentUser?.uid && (
+							<Stack
+								direction='row'
+								justifyContent='center'
+								alignItems='center'
+								sx={{ alignSelf: 'center' }}
+								spacing={2}
 							>
-								<EditIcon />
+								<Button
+									variant='contained'
+									onClick={() => {
+										navigate(
+											generatePath('/create/:id', {
+												id,
+											})
+										);
+									}}
+								>
+									<EditIcon />
+								</Button>
+								<Button variant='contained' onClick={() => deleteSetHandler(id)}>
+									<DeleteIcon />
+								</Button>
+							</Stack>
+						)}
+						<Typography variant='body1' sx={{ width: '100%' }} textAlign='center'>
+							{loading ? <Skeleton /> : `Created: ${timeConverter(flashCard?.created)}`}
+						</Typography>
+					</Stack>
+					<Stack
+						direction='column'
+						justifyContent='center'
+						alignItems='center'
+						sx={{ flex: 9, height: '100%' }}
+					>
+						<FlipCard
+							showBack={showBack}
+							showBackHandler={showBackHandler}
+							front={
+								loading ? (
+									<Skeleton width='100%' />
+								) : (
+									<Typography variant='h5' color='white'>
+										{flashCard.title ? flashCard.content[currentCard].term : 'Term'}
+									</Typography>
+								)
+							}
+							back={
+								<Typography variant='h5' color='white'>
+									{flashCard.title ? flashCard.content[currentCard].meaning : 'Meaning'}
+								</Typography>
+							}
+						/>
+						<Stack direction='row' justifyContent='center' alignItems='center' spacing={2}>
+							<Button onClick={previousCardHandler}>
+								<ArrowBackIosNewIcon />
 							</Button>
-							<Button variant='contained' onClick={() => deleteSetHandler(id)}>
-								<DeleteIcon />
+							<Typography variant='h6' color='primary'>
+								{currentCard + 1} / {flashCard?.content?.length}
+							</Typography>
+							<Button onClick={nextCardHandler}>
+								<ArrowForwardIosIcon />
 							</Button>
 						</Stack>
-					)}
-					<Typography variant='body1' sx={{ width: '100%' }} textAlign='center'>
-						{loading ? <Skeleton /> : `Created: ${timeConverter(flashCard?.created)}`}
-					</Typography>
-				</Stack>
-				<Stack
-					direction='column'
-					justifyContent='center'
-					alignItems='center'
-					sx={{ flex: 9, height: '100%' }}
-				>
-					<FlipCard
-						showBack={showBack}
-						showBackHandler={showBackHandler}
-						front={
-							loading ? (
-								<Skeleton width='100%' />
-							) : (
-								<Typography variant='h5' color='white'>
-									{flashCard.title ? flashCard.content[currentCard].term : 'Term'}
-								</Typography>
-							)
-						}
-						back={
-							<Typography variant='h5' color='white'>
-								{flashCard.title ? flashCard.content[currentCard].meaning : 'Meaning'}
-							</Typography>
-						}
-					/>
-					<Stack direction='row' justifyContent='center' alignItems='center' spacing={2}>
-						<Button onClick={previousCardHandler}>
-							<ArrowBackIosNewIcon />
-						</Button>
-						<Typography variant='h6' color='primary'>
-							{currentCard + 1} / {flashCard?.content?.length}
-						</Typography>
-						<Button onClick={nextCardHandler}>
-							<ArrowForwardIosIcon />
-						</Button>
 					</Stack>
 				</Stack>
+				{flashCard?.id && (
+					<Comments
+						commentHandler={commentHandler}
+						submitHandler={submitHandler}
+						set={flashCard}
+						content={content}
+					></Comments>
+				)}
+				{flashCard?.comments && <CommentList comments={flashCard.comments}></CommentList>}
 			</Stack>
 			<Modal open={Boolean(deleteID)} onClose={closeDeleteHandler}>
 				<CenterModal
