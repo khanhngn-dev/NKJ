@@ -320,13 +320,25 @@ const FlashCardPage = () => {
 						</Stack>
 					</Stack>
 				</Stack>
-				{flashCard?.id && (
-					<Comments
-						commentHandler={commentHandler}
-						submitHandler={submitHandler}
-						set={flashCard}
-						content={content}
-					></Comments>
+				{currentUser ? (
+					flashCard?.id && (
+						<Comments
+							commentHandler={commentHandler}
+							submitHandler={submitHandler}
+							set={flashCard}
+							content={content}
+						></Comments>
+					)
+				) : (
+					<Typography variant='h5'>
+						<span
+							onClick={() => navigate('/signup')}
+							style={{ color: 'var(--primary-color)', cursor: 'pointer' }}
+						>
+							Sign up
+						</span>{' '}
+						to comment on this set
+					</Typography>
 				)}
 				{flashCard?.comments && <CommentList comments={flashCard.comments}></CommentList>}
 			</Stack>
