@@ -26,7 +26,7 @@ import CenterModal from '../../components/CenterModal/CenterModal.component';
 const ProfilePage = () => {
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
-	const { id } = useParams();
+	const { uid } = useParams();
 	const currentUser = useSelector((state) => state.user.currentUser);
 	const [popularSet, setPopularSet] = useState([]);
 	const [loading, setLoading] = useState(true);
@@ -36,9 +36,9 @@ const ProfilePage = () => {
 	const fetchAllAsync = useCallback(async () => {
 		try {
 			let profile, set;
-			if (id) {
-				set = await fetchMostPopularSets(id);
-				profile = await fetchUserInfo(id);
+			if (uid) {
+				set = await fetchMostPopularSets(uid);
+				profile = await fetchUserInfo(uid);
 			} else if (currentUser) {
 				set = await fetchMostPopularSets(currentUser.uid);
 				profile = await fetchUserInfo(currentUser.uid);
