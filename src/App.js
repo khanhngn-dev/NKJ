@@ -5,6 +5,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './utils/firebase/firebase.utils';
 import { updateCurrentUser } from './redux/user/user.slice';
 import Spinner from './components/Spinner/Spinner.component';
+import ROUTE from './routers/Routes';
 
 const HomePage = lazy(() => import('./pages/HomePage/HomePage'));
 const AppRouter = lazy(() => import('./routers/AppRouter'));
@@ -37,23 +38,28 @@ function App() {
 				<Route path='/' element={<AppRouter />}>
 					<Route index element={<HomePage />}></Route>
 					<Route
-						path='signup'
+						path={ROUTE.SIGNUP}
+						// element={<SignUpPage />}
 						element={currentUser ? <Navigate to='/' replace /> : <SignUpPage />}
 					></Route>
 					<Route
-						path='signin'
+						path={ROUTE.SIGNIN}
+						// element={ <SignInPage />}
 						element={currentUser ? <Navigate to='/' replace /> : <SignInPage />}
 					></Route>
-					<Route path='alphabet' element={<AlphabetPage />}></Route>
-					<Route path='create' element={currentUser ? <CreatePage /> : <BecomeUserPage />}></Route>
+					<Route path={ROUTE.ALPHABET} element={<AlphabetPage />}></Route>
 					<Route
-						path='create/:id'
+						path={ROUTE.CREATE}
 						element={currentUser ? <CreatePage /> : <BecomeUserPage />}
 					></Route>
-					<Route path='profile' element={<ProfilePage />}></Route>
-					<Route path='profile/:id' element={<ProfilePage />}></Route>
-					<Route path='set' element={<SetPage />}></Route>
-					<Route path='set/:privacy/:id' element={<FlashCardPage />}></Route>
+					<Route
+						path={ROUTE.CREATE_ID}
+						element={currentUser ? <CreatePage /> : <BecomeUserPage />}
+					></Route>
+					<Route path={ROUTE.PROFILE} element={<ProfilePage />}></Route>
+					<Route path={ROUTE.PROFILE_ID} element={<ProfilePage />}></Route>
+					<Route path={ROUTE.SET} element={<SetPage />}></Route>
+					<Route path={ROUTE.SET_PRIVACY_ID} element={<FlashCardPage />}></Route>
 					<Route path='*' element={<Error404Page />}></Route>
 				</Route>
 			</Routes>

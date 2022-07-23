@@ -230,7 +230,7 @@ const SetPage = () => {
 					<Grid container direction='row' flexWrap='wrap' spacing={4}>
 						{loading ? (
 							[...new Array(6)].map((_, index) => (
-								<Grid item key={index} xs={12} sm={6}>
+								<Grid item key={index} xs={12} sm={12} md={6}>
 									<SkeletonSummary editable={false} />
 								</Grid>
 							))
@@ -243,7 +243,7 @@ const SetPage = () => {
 						) : (
 							<>
 								{filteredPublicSets?.map((set, index) => (
-									<Grid item key={set.id || index} xs={12} sm={6}>
+									<Grid item key={set.id || index} xs={12} sm={12} md={6}>
 										<SetSummary
 											editable={currentUser !== null && currentUser?.uid === set.user.uid}
 											key={set.id}
@@ -293,7 +293,7 @@ const SetPage = () => {
 							<Grid container direction='row' flexWrap='wrap' spacing={4}>
 								{loading ? (
 									[...new Array(6)].map((_, index) => (
-										<Grid item key={index} xs={12} sm={6}>
+										<Grid item key={index} xs={12} sm={12} md={6}>
 											<SkeletonSummary editable={true} />
 										</Grid>
 									))
@@ -305,7 +305,7 @@ const SetPage = () => {
 									</Grid>
 								) : (
 									filteredSets?.map((set, index) => (
-										<Grid item key={set.id || index} xs={12} sm={6}>
+										<Grid item key={set.id || index} xs={12} sm={12} md={6}>
 											<SetSummary
 												editable={currentUser !== null && currentUser?.uid === set.user.uid}
 												key={set.id}

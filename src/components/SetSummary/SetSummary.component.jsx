@@ -8,6 +8,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { timeConverter } from '../../utils/date/date';
 import { updateLearningSet } from '../../utils/firebase/firebase.utils';
 import { setNotificationAsync } from '../../redux/notification/notification.action';
+import ROUTE from '../../routers/Routes';
 
 export const SkeletonSummary = ({ editable }) => (
 	<Card
@@ -107,7 +108,6 @@ const SetSummary = ({ set, deleteSetHandler, editable }) => {
 				})
 			);
 		} catch (e) {
-			console.log(e);
 			dispatch(
 				setNotificationAsync({
 					message: 'Failed to update ratings',
@@ -145,7 +145,7 @@ const SetSummary = ({ set, deleteSetHandler, editable }) => {
 						sx={{ cursor: 'pointer' }}
 						onClick={() => {
 							navigate(
-								generatePath('/set/:privacy/:id', {
+								generatePath(ROUTE.SET_PRIVACY_ID, {
 									id,
 									privacy: Number(set.privacy),
 								})
@@ -159,7 +159,7 @@ const SetSummary = ({ set, deleteSetHandler, editable }) => {
 						sx={{ cursor: 'pointer' }}
 						onClick={() =>
 							navigate(
-								generatePath('/profile/:uid', {
+								generatePath(ROUTE.PROFILE_ID, {
 									uid,
 								})
 							)
@@ -234,7 +234,7 @@ const SetSummary = ({ set, deleteSetHandler, editable }) => {
 							variant='contained'
 							onClick={() => {
 								navigate(
-									generatePath('/create/:id', {
+									generatePath(ROUTE.CREATE_ID, {
 										id,
 									})
 								);

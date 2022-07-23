@@ -104,6 +104,7 @@ const CreatePage = () => {
 	const [tags, setTags] = useState([]);
 	const [privacy, setPrivacy] = useState(false);
 	const [title, setTitle] = useState('');
+	const [rest, setRest] = useState({});
 	const currentUser = useSelector((state) => state.user.currentUser);
 
 	const onSubmitHandler = async (e) => {
@@ -116,13 +117,26 @@ const CreatePage = () => {
 				setLoading(true);
 				dispatch(setNotificationAsync({ message: 'Creating set...', severity: 'info' }));
 				id
-					? await updateLearningSet(id, currentUser.uid, {
-							content: cards,
-							tags,
-							privacy,
-							title,
-							updated: Date.now(),
-					  })
+					? await updateLearningSet(
+							id,
+							currentUser.uid,
+							privacy
+								? {
+										content: cards,
+										tags,
+										privacy,
+										title,
+										updated: Date.now(),
+										...rest,
+								  }
+								: {
+										content: cards,
+										tags,
+										privacy,
+										title,
+										updated: Date.now(),
+								  }
+					  )
 					: await addLearningSet(
 							{
 								id: uuidv1(),
@@ -257,10 +271,12 @@ const CreatePage = () => {
 					);
 					return;
 				}
-				setCards(response.content);
-				setPrivacy(response.privacy);
-				setTags(response.tags);
-				setTitle(response.title);
+				const { content, privacy, tags, title, ...rest } = response;
+				setCards(content);
+				setPrivacy(privacy);
+				setTags(tags);
+				setTitle(title);
+				setRest(rest);
 			} catch (e) {
 				dispatch(
 					setNotificationAsync({ message: `Cannot fetch set with ID: ${id}`, state: 'error' })

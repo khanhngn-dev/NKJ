@@ -13,19 +13,17 @@ import {
 import {
 	getFirestore,
 	doc,
-	setDoc,
 	collection,
 	getDoc,
 	getDocs,
-	deleteDoc,
 	query,
 	limit,
 	orderBy,
-	updateDoc,
 	where,
 	writeBatch,
+	setDoc,
+	updateDoc,
 } from 'firebase/firestore';
-import { batch } from 'react-redux';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -48,35 +46,63 @@ const googleProvider = new GoogleAuthProvider();
 const facebookProvider = new FacebookAuthProvider();
 const githubProvider = new GithubAuthProvider();
 
+export const setUserInfo = async (userID, info) => {
+	const userRef = doc(firestore, `user/${userID}`);
+	await setDoc(userRef, info);
+};
+
+export const updateUserInfo = async (userID, updatedInfo) => {
+	const userRef = doc(firestore, `user/${userID}`);
+	await updateDoc(userRef, updatedInfo);
+};
+
+export const checkUserInfoExist = async ({ uid, displayName, email, phoneNumber, photoURL }) => {
+	const userRef = doc(firestore, `user/${uid}`);
+	const snapshot = await getDoc(userRef);
+	if (!snapshot.exists())
+		await setUserInfo(uid, { uid, displayName, email, phoneNumber, photoURL });
+};
+
 export const createUserUsingEmailPassword = async (email, password) => {
 	if (!email || !password) return;
 	const { user } = await createUserWithEmailAndPassword(auth, email, password);
+	checkUserInfoExist(user);
 	return user;
 };
 
 export const signInUsingEmailPassword = async (email, password) => {
 	if (!email || !password) return;
 	const { user } = await signInWithEmailAndPassword(auth, email, password);
+	await checkUserInfoExist(user);
 	return user;
 };
 
 export const signInUsingGooglePopUp = async () => {
-	const result = await signInWithPopup(auth, googleProvider);
-	return result.user;
+	const { user } = await signInWithPopup(auth, googleProvider);
+	await checkUserInfoExist(user);
+	return user;
 };
 
 export const signInUsingFacebookPopUp = async () => {
-	const result = await signInWithPopup(auth, facebookProvider);
-	return result.user;
+	const { user } = await signInWithPopup(auth, facebookProvider);
+	await checkUserInfoExist(user);
+	return user;
 };
 
 export const signInUsingGithubPopup = async () => {
-	const result = await signInWithPopup(auth, githubProvider);
-	return result.user;
+	const { user } = await signInWithPopup(auth, githubProvider);
+	await checkUserInfoExist(user);
+	return user;
 };
 
 export const signOutUser = async () => {
 	signOut(auth);
+};
+
+export const fetchUserInfo = async (userID) => {
+	if (!userID) return;
+	const userRef = doc(firestore, `user/${userID}`);
+	return (await getDoc(userRef)).data();
 };
 
 export const addLearningSet = async (set, userID) => {
@@ -107,6 +133,8 @@ export const updateLearningSet = async (setID, userID, updatedContent) => {
 		if (docSnapshot.exists()) {
 			// await updateDoc(setRefPublic, updatedContent);
 			batch.update(setRefPublic, updatedContent);
+		} else {
+			batch.set(setRefPublic, updatedContent);
 		}
 	} else {
 		const doc = await getDoc(setRefPublic);
@@ -155,6 +183,7 @@ export const fetchAllPublicLearningSets = async (numSets = DEFAULT_MAX_SET) => {
 
 export const deleteLearningSet = async (setID, userID) => {
 	if (!setID || !userID) return;
+	const batch = writeBatch(firestore);
 	const setRef = doc(firestore, `user/${userID}/sets/${setID}`);
 	const setRefPublic = doc(firestore, `public_sets/${setID}`);
 	// await deleteDoc(setRefPublic);

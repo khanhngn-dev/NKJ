@@ -1,6 +1,6 @@
 import { Button, Divider, Stack, TextField } from '@mui/material';
 
-const Comments = ({ set, content, commentHandler, submitHandler }) => {
+const CommentSection = ({ set, content, commentHandler, submitHandler }) => {
 	const { title, comment } = content;
 
 	return (
@@ -57,4 +57,4 @@ const Comments = ({ set, content, commentHandler, submitHandler }) => {
 	);
 };
 
-export default Comments;
+export default CommentSection;

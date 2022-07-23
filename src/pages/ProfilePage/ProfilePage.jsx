@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate, useParams, generatePath } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { useSelector, useDispatch } from 'react-redux';
 import { setNotificationAsync } from '../../redux/notification/notification.action';
 
@@ -15,7 +15,11 @@ import {
 	Chip,
 } from '@mui/material';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
-import { deleteLearningSet, fetchMostPopularSets } from '../../utils/firebase/firebase.utils';
+import {
+	deleteLearningSet,
+	fetchMostPopularSets,
+	fetchUserInfo,
+} from '../../utils/firebase/firebase.utils';
 import SetSummary, { SkeletonSummary } from '../../components/SetSummary/SetSummary.component';
 import CenterModal from '../../components/CenterModal/CenterModal.component';
 
@@ -27,22 +31,28 @@ const ProfilePage = () => {
 	const [popularSet, setPopularSet] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [deleteID, setDeleteID] = useState('');
+	const [profile, setProfile] = useState({});
 
-	const fetchPopularSetsAsync = useCallback(async () => {
+	const fetchAllAsync = useCallback(async () => {
 		try {
-			const response = id
-				? await fetchMostPopularSets(id)
-				: currentUser
-				? await fetchMostPopularSets(currentUser.uid)
-				: navigate('/signup');
-			if (!response) {
+			let profile, set;
+			if (id) {
+				set = await fetchMostPopularSets(id);
+				profile = await fetchUserInfo(id);
+			} else if (currentUser) {
+				set = await fetchMostPopularSets(currentUser.uid);
+				profile = await fetchUserInfo(currentUser.uid);
+			} else {
+				navigate('/signup');
+			}
+			if (!profile) {
 				setLoading(false);
 				return;
 			}
-			setPopularSet(response);
+			set && setPopularSet(set);
+			setProfile(profile);
 			setLoading(false);
 		} catch (e) {
-			console.log(e);
 			setLoading(false);
 			dispatch(
 				setNotificationAsync({ message: 'Failed to fetch most popular sets', severity: 'error' })
@@ -64,7 +74,7 @@ const ProfilePage = () => {
 			deleteLearningSet(setID, currentUser.uid);
 			dispatch(setNotificationAsync({ message: 'Set deleted successfully', severity: 'success' }));
 			setLoading(true);
-			fetchPopularSetsAsync(currentUser.uid);
+			fetchAllAsync();
 		} catch (e) {
 			dispatch(setNotificationAsync({ message: 'Failed to delete set', severity: 'error' }));
 		}
@@ -72,7 +82,7 @@ const ProfilePage = () => {
 	};
 
 	useEffect(() => {
-		fetchPopularSetsAsync();
+		fetchAllAsync();
 		// eslint-disable-next-line
 	}, []);
 
@@ -107,7 +117,7 @@ const ProfilePage = () => {
 						}
 					>
 						<Avatar
-							src='https://picsum.photos/seed/picsum/200'
+							src={profile.photoURL}
 							sx={{
 								width: 200,
 								height: 200,
@@ -130,12 +140,12 @@ const ProfilePage = () => {
 					</Badge>
 					<Stack direction='column' gap={4} justifyContent='center' alignItems='center'>
 						<Typography variant='h4' color='primary'>
-							{currentUser.displayName || currentUser.email}
+							{profile.displayName || profile.email}
 						</Typography>
 					</Stack>
 				</Stack>
 				<Grid container direction='row' flexWrap='wrap' spacing={4}>
-					{popularSet.length !== 0 && (
+					{popularSet?.length !== 0 && (
 						<Grid item xs={12}>
 							<Divider flexItem>
 								<Chip
@@ -152,12 +162,12 @@ const ProfilePage = () => {
 					)}
 					{loading
 						? [...new Array(6)].map((_, index) => (
-								<Grid item xs={12} sm={6} key={index}>
+								<Grid item xs={12} sm={12} md={6} key={index}>
 									<SkeletonSummary editable={false} />
 								</Grid>
 						  ))
 						: popularSet.map((set) => (
-								<Grid key={set.id} item xs={12} sm={6}>
+								<Grid key={set.id} item xs={12} sm={12} md={6}>
 									<SetSummary
 										editable={currentUser !== null && currentUser?.uid === set.user.uid}
 										set={set}

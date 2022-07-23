@@ -2,6 +2,7 @@ import { generatePath, useNavigate } from 'react-router';
 import { Avatar, Card, CardContent, CardHeader, IconButton, Typography } from '@mui/material';
 import ReportIcon from '@mui/icons-material/Report';
 import { timeConverter } from '../../utils/date/date';
+import ROUTE from '../../routers/Routes';
 
 const CommentCard = ({ content }) => {
 	const navigate = useNavigate();
@@ -10,11 +11,12 @@ const CommentCard = ({ content }) => {
 
 	const navigateHandler = () => {
 		navigate(
-			generatePath('/profile/:id', {
-				id: uid,
+			generatePath(ROUTE.PROFILE_ID, {
+				uid,
 			})
 		);
 	};
+
 	return (
 		<Card sx={{ width: '100%' }}>
 			<CardHeader

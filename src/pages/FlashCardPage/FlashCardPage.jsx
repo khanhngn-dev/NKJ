@@ -18,8 +18,9 @@ import FlipCard from '../../components/FlipCard/FlipCard.component';
 import { timeConverter } from '../../utils/date/date';
 import { setNotificationAsync } from '../../redux/notification/notification.action';
 import CenterModal from '../../components/CenterModal/CenterModal.component';
-import Comments from '../../components/Comments/Comments.component';
+import CommentSection from '../../components/CommentSection/CommentSection.component';
 import CommentList from '../../components/CommentList/CommentList.component';
+import ROUTE from '../../routers/Routes';
 
 const FlashCardPage = () => {
 	const { id, privacy } = useParams();
@@ -147,7 +148,6 @@ const FlashCardPage = () => {
 			setContent({ title: '', comment: '' });
 			fetchSetAsync();
 		} catch (e) {
-			console.log(e);
 			dispatch(
 				setNotificationAsync({
 					message: 'Failed to comment, please try again later',
@@ -266,7 +266,7 @@ const FlashCardPage = () => {
 									variant='contained'
 									onClick={() => {
 										navigate(
-											generatePath('/create/:id', {
+											generatePath(ROUTE.CREATE_ID, {
 												id,
 											})
 										);
@@ -322,12 +322,12 @@ const FlashCardPage = () => {
 				</Stack>
 				{currentUser ? (
 					flashCard?.id && (
-						<Comments
+						<CommentSection
 							commentHandler={commentHandler}
 							submitHandler={submitHandler}
 							set={flashCard}
 							content={content}
-						></Comments>
+						></CommentSection>
 					)
 				) : (
 					<Typography variant='h5'>
