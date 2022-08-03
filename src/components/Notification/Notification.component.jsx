@@ -1,6 +1,6 @@
 import { Alert, Snackbar } from '@mui/material';
 
-const Toastr = ({ severity, children, timeToLive, removeHandler }) => {
+const Notification = ({ severity, children, timeToLive, removeHandler }) => {
 	return (
 		<Snackbar
 			anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
@@ -15,4 +15,4 @@ const Toastr = ({ severity, children, timeToLive, removeHandler }) => {
 	);
 };
 
-export default Toastr;
+export default Notification;

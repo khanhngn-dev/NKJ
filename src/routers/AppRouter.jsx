@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { setNotificationAsync } from '../redux/notification/notification.action';
 
 import Navigation from '../components/Navigation/Navigation.component';
-import Toastr from '../components/Toastr/Toastr.component';
+import Notification from '../components/Notification/Notification.component';
 
 import { ThemeProvider } from '@mui/material';
 import responsiveDefaultTheme from '../utils/themes/themes.utils';
@@ -28,9 +28,9 @@ const AppRouter = () => {
 			<Navigation />
 			<Outlet />
 			{message && (
-				<Toastr severity={severity} timeToLive={3} removeHandler={removeNotification}>
+				<Notification severity={severity} timeToLive={3} removeHandler={removeNotification}>
 					{message}
-				</Toastr>
+				</Notification>
 			)}
 		</ThemeProvider>
 	);
