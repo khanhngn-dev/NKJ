@@ -7,6 +7,7 @@ const Notification = ({ severity, children, timeToLive, removeHandler }) => {
 			open={Boolean(severity)}
 			autoHideDuration={timeToLive * 1000}
 			onClose={removeHandler}
+			sx={{marginTop: "45px"}}
 		>
 			<Alert severity={severity} variant='filled' onClose={removeHandler}>
 				{children}
