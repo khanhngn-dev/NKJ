@@ -7,6 +7,8 @@ import { Button, Stack, Menu, MenuItem } from '@mui/material';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import MenuIcon from '@mui/icons-material/Menu';
 
+import ROUTE from '../../routers/Routes';
+
 import { NavLink } from './Navigation.styles';
 
 export const LEARNING_NAV_LINK = ['Alphabet', 'Grammar', 'Vocabulary', 'Set'];
@@ -41,7 +43,7 @@ const Navigation = () => {
 					color='primary'
 					underline='none'
 					component='div'
-					onClick={() => navigate('/')}
+					onClick={() => navigate(ROUTE.HOMEPAGE)}
 				>
 					NKJ
 				</NavLink>
@@ -73,7 +75,7 @@ const Navigation = () => {
 					color='primary'
 					underline='hover'
 					component='div'
-					onClick={() => navigate('/create')}
+					onClick={() => navigate(ROUTE.CREATE)}
 				>
 					Create
 				</NavLink>
@@ -82,7 +84,7 @@ const Navigation = () => {
 					color='primary'
 					underline='hover'
 					component='div'
-					onClick={() => navigate('/exercise')}
+					onClick={() => navigate(ROUTE.EXERCISE)}
 				>
 					Exercise
 				</NavLink>
@@ -93,7 +95,7 @@ const Navigation = () => {
 				color='primary'
 				underline='none'
 				component='div'
-				onClick={() => navigate('/')}
+				onClick={() => navigate(ROUTE.HOMEPAGE)}
 			>
 				NKJ
 			</NavLink>
@@ -102,7 +104,7 @@ const Navigation = () => {
 					<Stack direction='row' justifyContent='center' alignItems='center' spacing={2}>
 						<AccountCircleIcon
 							sx={{ color: 'var(--primary-color)', cursor: 'pointer' }}
-							onClick={() => navigate('/profile')}
+							onClick={() => navigate(ROUTE.PROFILE)}
 						/>
 						<Button
 							type='button'
@@ -131,7 +133,7 @@ const Navigation = () => {
 							sx={{
 								fontWeight: 700,
 							}}
-							onClick={() => navigate('/signin')}
+							onClick={() => navigate(ROUTE.SIGNIN)}
 						>
 							Sign in
 						</Button>
@@ -141,7 +143,7 @@ const Navigation = () => {
 							sx={{
 								fontWeight: 700,
 							}}
-							onClick={() => navigate('/signup')}
+							onClick={() => navigate(ROUTE.SIGNUP)}
 						>
 							Sign up
 						</Button>
@@ -204,7 +206,7 @@ const Navigation = () => {
 									}}
 									onClick={() => {
 										onCloseHandler();
-										navigate('/signin');
+										navigate(ROUTE.SIGNIN);
 									}}
 								>
 									Sign in
@@ -219,7 +221,7 @@ const Navigation = () => {
 									}}
 									onClick={() => {
 										onCloseHandler();
-										navigate('/signup');
+										navigate(ROUTE.SIGNUP);
 									}}
 								>
 									Sign up

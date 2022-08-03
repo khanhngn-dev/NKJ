@@ -1,6 +1,7 @@
 import QuestionMarkIcon from '@mui/icons-material/QuestionMark';
 import { Stack, Typography, Link } from '@mui/material';
 import { useNavigate } from 'react-router';
+import ROUTE from '../../routers/Routes';
 
 const Error404Page = () => {
 	const navigate = useNavigate();
@@ -32,7 +33,7 @@ const Error404Page = () => {
 							cursor: 'pointer',
               fontWeight: 'bold',
 						}}
-						onClick={() => navigate('/')}
+						onClick={() => navigate(ROUTE.HOMEPAGE)}
 					>
 						Home
 					</Link>

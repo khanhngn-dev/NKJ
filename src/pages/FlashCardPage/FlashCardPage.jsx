@@ -55,7 +55,7 @@ const FlashCardPage = () => {
 			return;
 		}
 		closeDeleteHandler();
-		navigate('/set');
+		navigate(ROUTE.SET);
 	};
 
 	const showBackHandler = () => {
@@ -89,7 +89,7 @@ const FlashCardPage = () => {
 			const response = await fetchPublicLearningSet(id);
 			if (!response) {
 				setLoading(false);
-				navigate('/set');
+				navigate(ROUTE.SET);
 				return;
 			}
 			setFlashCard(response);
@@ -97,7 +97,7 @@ const FlashCardPage = () => {
 			const response = await fetchLearningSet(id, currentUser?.uid);
 			if (!response) {
 				setLoading(false);
-				navigate('/set');
+				navigate(ROUTE.SET);
 				return;
 			}
 			setFlashCard(response);
@@ -332,7 +332,7 @@ const FlashCardPage = () => {
 				) : (
 					<Typography variant='h5'>
 						<span
-							onClick={() => navigate('/signup')}
+							onClick={() => navigate(ROUTE.SIGNUP)}
 							style={{ color: 'var(--primary-color)', cursor: 'pointer' }}
 						>
 							Sign up

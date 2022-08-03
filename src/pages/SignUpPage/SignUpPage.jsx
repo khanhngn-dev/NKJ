@@ -15,6 +15,7 @@ import {
 } from '../../utils/firebase/firebase.utils';
 
 import { SpinnerContainer } from '../../components/Spinner/Spinner.styles';
+import ROUTE from '../../routers/Routes';
 
 const defaultFormField = {
 	email: '',
@@ -123,7 +124,7 @@ const SignUpPage = () => {
 								component='span'
 								underline='hover'
 								sx={{ cursor: 'pointer' }}
-								onClick={() => navigate('/signin')}
+								onClick={() => navigate(ROUTE.SIGNIN)}
 							>
 								Sign In
 							</Link>
