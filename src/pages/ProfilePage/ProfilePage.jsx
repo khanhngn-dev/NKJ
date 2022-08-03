@@ -22,6 +22,7 @@ import {
 } from '../../utils/firebase/firebase.utils';
 import SetSummary, { SkeletonSummary } from '../../components/SetSummary/SetSummary.component';
 import CenterModal from '../../components/CenterModal/CenterModal.component';
+import ROUTE from '../../routers/Routes';
 
 const ProfilePage = () => {
 	const dispatch = useDispatch();
@@ -43,7 +44,7 @@ const ProfilePage = () => {
 				set = await fetchMostPopularSets(currentUser.uid);
 				profile = await fetchUserInfo(currentUser.uid);
 			} else {
-				navigate('/signup');
+				navigate(ROUTE.SIGNUP);
 			}
 			if (!profile) {
 				setLoading(false);

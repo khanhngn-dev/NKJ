@@ -13,6 +13,7 @@ import {
 	signInUsingGooglePopUp,
 	signInUsingGithubPopup,
 } from '../../utils/firebase/firebase.utils';
+import ROUTE from '../../routers/Routes';
 
 import { SpinnerContainer } from '../../components/Spinner/Spinner.styles';
 
@@ -100,8 +101,21 @@ const SignInPage = () => {
 			>
 				<Stack direction='column' spacing={4} justifyContent='center' sx={{ width: '50vw' }}>
 					<Stack direction='column' spacing={1}>
-						<Typography variant='h4' color='primary'>
-							Sign In
+						<Typography variant='h3' color='primary'>
+							Welcome to NKJ
+						</Typography>
+						<Typography variant='h5'>
+							Visit our page! {' '}  
+							<Link
+								variant='h5'
+								color='primary'
+								component='span'
+								underline='hover'
+								sx={{ cursor: 'pointer' }}
+								onClick={() => navigate(ROUTE.HOMEPAGE)}
+							>
+								Home
+							</Link>
 						</Typography>
 						<Typography variant='h5'>
 							Don't have an account?{' '}
@@ -111,7 +125,7 @@ const SignInPage = () => {
 								component='span'
 								underline='hover'
 								sx={{ cursor: 'pointer' }}
-								onClick={() => navigate('/signup')}
+								onClick={() => navigate(ROUTE.SIGNUP)}
 							>
 								Sign Up
 							</Link>

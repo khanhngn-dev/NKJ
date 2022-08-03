@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router';
 import { Link, Stack, Typography } from '@mui/material';
+import ROUTE from '../../routers/Routes';
 
 const BecomeUserPage = () => {
 	const navigate = useNavigate();
@@ -17,7 +18,7 @@ const BecomeUserPage = () => {
 				color='primary'
 				underline='hover'
 				component='div'
-				onClick={() => navigate('/signup')}
+				onClick={() => navigate(ROUTE.SIGNUP)}
 				sx={{
 					cursor: 'pointer',
 				}}
@@ -30,7 +31,7 @@ const BecomeUserPage = () => {
 				color='primary'
 				underline='hover'
 				component='div'
-				onClick={() => navigate('/signin')}
+				onClick={() => navigate(ROUTE.SIGNIN)}
 				sx={{
 					cursor: 'pointer',
 				}}
@@ -42,7 +43,7 @@ const BecomeUserPage = () => {
 				color='primary'
 				underline='hover'
 				component='div'
-				onClick={() => navigate('/')}
+				onClick={() => navigate(ROUTE.HOMEPAGE)}
 				sx={{
 					cursor: 'pointer',
 				}}

@@ -27,6 +27,7 @@ import {
 } from '../../utils/firebase/firebase.utils';
 import CenterModal from '../../components/CenterModal/CenterModal.component';
 import { SpinnerContainer } from '../../components/Spinner/Spinner.styles';
+import ROUTE from '../../routers/Routes';
 
 const sortByList = [
 	{
@@ -327,7 +328,7 @@ const SetPage = () => {
 							</Divider>
 							<Typography variant='h5'>
 								<span
-									onClick={() => navigate('/signup')}
+									onClick={() => navigate(ROUTE.SIGNUP)}
 									style={{ color: 'var(--primary-color)', cursor: 'pointer' }}
 								>
 									Sign up

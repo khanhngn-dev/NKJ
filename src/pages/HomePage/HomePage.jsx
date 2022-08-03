@@ -10,6 +10,7 @@ import {
 } from './HomePage.styles';
 
 import { LEARNING_NAV_LINK } from '../../components/Navigation/Navigation.component';
+import ROUTE from '../../routers/Routes';
 
 const HomePage = () => {
 	const currentUser = useSelector((state) => state.user.currentUser);
@@ -53,7 +54,7 @@ const HomePage = () => {
 					<LandingButton
 						variant='contained'
 						sx={{ marginBottom: '80px' }}
-						onClick={() => navigate('/signup')}
+						onClick={() => navigate(ROUTE.SIGNUP)}
 					>
 						Get Started
 					</LandingButton>

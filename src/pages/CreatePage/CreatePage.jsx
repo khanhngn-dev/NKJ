@@ -14,6 +14,8 @@ import CenterModal from '../../components/CenterModal/CenterModal.component';
 import { SpinnerContainer } from '../../components/Spinner/Spinner.styles';
 import { MaterialUISwitch } from './CreatePage.styles';
 
+import ROUTE from '../../routers/Routes';
+
 import { v1 as uuidv1 } from 'uuid';
 
 import {
@@ -162,7 +164,7 @@ const CreatePage = () => {
 				dispatch(
 					setNotificationAsync({ message: 'Set created successfully', severity: 'success' })
 				);
-				navigate('/set');
+				navigate(ROUTE.SET);
 			} catch (e) {
 				setLoading(false);
 				dispatch(setNotificationAsync({ message: e.message, severity: 'error' }));
@@ -265,7 +267,7 @@ const CreatePage = () => {
 			try {
 				const response = await fetchLearningSet(id, currentUser?.uid);
 				if (!response) {
-					navigate('/create');
+					navigate(ROUTE.CREATE);
 					dispatch(
 						setNotificationAsync({ message: `Set with ID ${id} does not exist`, state: 'error' })
 					);
