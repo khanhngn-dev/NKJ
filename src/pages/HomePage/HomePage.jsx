@@ -63,7 +63,7 @@ const HomePage = () => {
 			<LandingPageImageContainer>
 				<DecorBar height='10px' width='120px' top='80px' left='20px' />
 				<DecorBar height='10px' width='150px' top='40px' right='60px' />
-				<LandingPageImage src='../../assets/Landing.png' alt='Landing Page' />
+				<LandingPageImage src='../../assets/landing.png' alt='Landing Page' />
 			</LandingPageImageContainer>
 		</Stack>
 	);
